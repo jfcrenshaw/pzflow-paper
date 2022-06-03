@@ -16,6 +16,6 @@ dependencies:
     - src/data/main_galaxy_flow/
     - src/data/conditional_galaxy_flow/
 datasets:
-  10.5072/zenodo.1069391:
+  10.5072/zenodo.1069392:
     contents:
       cosmoDC2_subset.pkl: src/data/cosmoDC2_subset.pkl
