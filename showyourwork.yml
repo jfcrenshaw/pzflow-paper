@@ -1,10 +1,16 @@
-version: 0.3.0.dev3
+version: 0.3.0.dev8
 dependencies:
   src/scripts/plot_two_moons.py:
     - src/data/two_moons_flow.pzflow.pkl
+  src/scripts/train_main_galaxy_flow.py:
+    - src/data/cosmoDC2_subset.pkl
   src/scripts/plot_main_galaxy_corner.py:
+    - src/data/cosmoDC2_subset.pkl
     - src/data/main_galaxy_flow/
+  src/scripts/train_conditional_galaxy_flow.py:
+    - src/data/cosmoDC2_subset.pkl
   src/scripts/plot_conditional_galaxy_corner.py:
+    - src/data/cosmoDC2_subset.pkl
     - src/data/conditional_galaxy_flow/
   src/scripts/plot_galaxy_losses.py:
     - src/data/main_galaxy_flow/
