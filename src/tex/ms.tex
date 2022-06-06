@@ -392,6 +392,19 @@ In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add ad
     \end{centering}
 \end{figure*}
 
+\begin{figure*}[t!]
+    \script{plot_smooth_color_distribution.py}
+    \begin{centering}
+        \includegraphics{figures/smooth_color_distribution.pdf}
+        \caption{
+            Comparing the $r-i$ vs redshift distribution for galaxy samples from CosmoDC2 (left) and from the normalizing flow (right).
+            The high-redshift galaxies in CosmoDC2 lie along discrete tracks in color space due to the discrete number of galaxy SED templates used in the simulation.
+            PZFlow smooths over these discrete tracks, resulting in a color distribution that is smooth to high redshifts.
+        }
+        \label{fig:smooth-color-dist}
+    \end{centering}
+\end{figure*}
+
 To create a generative model of galaxy redshifts and photometry, we use the true redshifts and $ugrizy$ magnitudes from the DESC CosmoDC2 simulation (\needscite).
 We selected all galaxies from CosmoDC2 with at most one band beyond the LSST 10-year 5-sigma point source depths.
 Of these, we selected $10^6$ galaxies and split them intro training and test sets consisting of 80\% and 20\% of the galaxies, respectively.
@@ -430,6 +443,11 @@ Training took 7 minutes on a Tesla P100 12GB GPU.
 
 We assess the results by drawing $10^4$ galaxies from the trained flow, and plotting their distribution against  $10^4$ galaxies from the test set (Figure \ref{fig:main-corner}).
 We see that the normalizing flow has done an excellent job of reproducing the distribution of DESC DC2, without any unusual artifacts or outliers.
+In addition, Figure \ref{fig:smooth-color-dist} compares the distribution of galaxy $r-i$ vs redshift.
+The CosmoDC2 simulation is known to exhibit discrete tracks in this space at high redshift, due to the discrete number of SED templates used during simulation.
+These tracks are visible in the left panel.
+The right panel shows that PZFlow smooths over this discreteness, resulting in a color distribution that is smooth up to high redshifts.
+
 We note that these results were obtained without any extensive hyperparameter search, and that very similar (slightly worse results) are obtained without the \texttt{ColorTransform} bijection, demonstrating the flexibility of the method to adapt to unseen data sets.
 
 With this normalizing flow, we have an efficient CosmoDC2 emulator that produces a smooth distribution of realistic galaxies up to high-redshifts.
@@ -476,6 +494,8 @@ This posterior is even broader, with a significant low-redshift tail, demonstrat
 Calculating these posteriors enables direct comparison of true redshift posteriors (consistent with the photometric errors and missing bands) with the redshift posteriors estimated by photo-z estimators.
 This allows you to test photo-z estimation on a posterior-per-galaxy basis, which will alleviate the photo-z validation problems discovered by \citet{schmidt2020}.
 
+\note{Point towards the photo-z section for a more comprehensive discussion of posterior calculation.}
+
 
 \subsection{Additional properties with conditional flows}
 \label{sec:fwd-model-condtional}
@@ -520,6 +540,31 @@ This small catalog was generated for visualization purposes, but the normalizing
 
 \section{Photometric Redshift Estimation}
 \label{sec:photo-z}
+
+\subsection{Training an Ensemble for photo-z estimation}
+
+\note{
+    Galaxy catalog created in the previous section that has true posteriors. \\
+    Ensembles. \\
+    Training with error sampling.
+}
+
+\subsection{Estimating posteriors}
+
+\note{
+    Estimating raw posteriors. \\
+    Estimating posteriors with error convolution. \\
+    Estimating posteriors with u band marginalization.
+}
+
+\subsection{Photo-z metrics}
+
+\note{
+    Photo-z point plot. \\
+    Binned point metrics vs redshift. \\
+    Brier score and other PDF metrics.
+}
+
 
 \appendix
 
