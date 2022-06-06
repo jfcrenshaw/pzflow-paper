@@ -8,7 +8,7 @@ data = get_twomoons_data()
 
 # create and train a flow to model the two moons data
 flow = Flow(data.columns)
-_ = flow.train(data, epochs=1)
+_ = flow.train(data)
 
 # save the trained flow
 flow.save(paths.data / "two_moons_flow.pzflow.pkl")

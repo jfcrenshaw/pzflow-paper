@@ -42,7 +42,13 @@ flow = Flow(
 # train for three rounds of 150 epochs
 # after each round, decrease the learning rate by a factor of 10
 opt = optax.adam(1e-3)
-losses = flow.train(train_set, epochs=1, optimizer=opt, seed=0)
+losses = flow.train(train_set, epochs=150, optimizer=opt, seed=0)
+
+opt = optax.adam(1e-4)
+losses += flow.train(train_set, epochs=150, optimizer=opt, seed=1)
+
+opt = optax.adam(1e-5)
+losses += flow.train(train_set, epochs=150, optimizer=opt, seed=2)
 
 # save some info with the model
 flow.info = (
