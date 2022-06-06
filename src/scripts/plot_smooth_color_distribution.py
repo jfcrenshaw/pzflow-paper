@@ -1,3 +1,4 @@
+"""Plot distribution of r-i vs redshift for CosmoDC2 and PZFlow."""
 import matplotlib.pyplot as plt
 import pandas as pd
 import paths
