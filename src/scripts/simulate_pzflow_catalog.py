@@ -1,3 +1,4 @@
+"""Simulate a PZFlow-generated catalog of 1e6 galaxies."""
 import pandas as pd
 import paths
 from lsst_error_model import LSSTErrorModel
@@ -8,6 +9,7 @@ flow = Flow(file=paths.data / "main_galaxy_flow" / "flow.pzflow.pkl")
 truth_sample = flow.sample(1_000_000, seed=0)
 
 # generate true ellipticity and size
+cond_flow = Flow(file=paths.data / "conditional_galaxy_flow" / "flow.pzflow.pkl")
 ellip_and_size = cond_flow.sample(
     nsamples=1, conditions=truth_sample, save_conditions=False, seed=1
 )

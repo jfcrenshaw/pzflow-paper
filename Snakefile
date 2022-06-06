@@ -21,3 +21,11 @@ rule train_conditional_galaxy_flow:
         True
     script:
         "src/scripts/train_conditional_galaxy_flow.py"
+
+rule simulate_pzflow_catalog:
+    output:
+        "src/data/pzflow_catalog.pkl"
+    cache:
+        True
+    script:
+        "src/scripts/simulate_pzflow_catalog.py"
