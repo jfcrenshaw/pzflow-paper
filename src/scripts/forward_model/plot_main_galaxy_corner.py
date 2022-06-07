@@ -40,7 +40,6 @@ corner_settings = {
     ],
     "hist_bin_factor": 1,
     "labels": test_set.columns,
-    "labelpad": 0.05,
 }
 
 # plot the test set in red
@@ -51,13 +50,18 @@ corner.corner(
     samples.to_numpy(), color="C0", data_kwargs={"ms": 1.5}, **corner_settings
 )
 
-# set ticks to integers
+# set border ticks to integers
 axes = np.array(fig.axes).reshape((7, 7))
-for i in range(1, 7):
-    for j in range(i + 1):
-        axes[i, j].xaxis.set_major_locator(MaxNLocator(4, integer=True))
-        if j < i:
-            axes[i, j].yaxis.set_major_locator(MaxNLocator(4, integer=True))
+for ax in axes[-1, :]:
+    ax.xaxis.set_major_locator(MaxNLocator(4, integer=True))
+for ax in axes[1:, 0]:
+    ax.yaxis.set_major_locator(MaxNLocator(4, integer=True))
+
+# remove interior ticks
+for ax in axes[:-1, :].flatten():
+    ax.set(xticks=[])
+for ax in axes[:, 1:].flatten():
+    ax.set(yticks=[])
 
 # add a legend
 axes[2, 5].plot([], c="C0", label="PZFlow")

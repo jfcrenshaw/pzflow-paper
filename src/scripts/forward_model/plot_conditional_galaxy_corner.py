@@ -38,7 +38,7 @@ corner_settings = {
         (18, 27),
         (18, 27),
         (18, 27),
-        (-0.1, 1.07),
+        (0, 1.07),
         (0, 1.07),
     ],
     "hist_bin_factor": 1,
@@ -62,9 +62,8 @@ for ax in axes[:-2].flatten():
     ax.set_visible(False)
 
 # set redshift and magnitude ticks to integers
-for row in axes[-2:]:
-    for j in range(7):
-        row[j].xaxis.set_major_locator(MaxNLocator(4, integer=True))
+for ax in axes[-2:, :-2].flatten():
+    ax.xaxis.set_major_locator(MaxNLocator(4, integer=True))
 
 # set ellipticity and size ticks
 for ax in [axes[-2, 0], axes[-1, 0]]:
@@ -72,8 +71,16 @@ for ax in [axes[-2, 0], axes[-1, 0]]:
 for ax in [axes[-1, -2], axes[-1, -1]]:
     ax.set(xticks=[0, 0.5, 1.0])
 
-# set ylim on first row
+# remove interior ticks
+for ax in axes[-2, :]:
+    ax.set(xticks=[])
+for ax in axes[-2:, 1:].flatten():
+    ax.set(yticks=[])
+
+# set ylim
 for ax in axes[-2, :-2]:
+    ax.set(ylim=(0, 1.03))
+for ax in axes[-1, :-1]:
     ax.set(ylim=(0, 1.03))
 
 # add a legend
