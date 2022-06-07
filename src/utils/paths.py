@@ -1,8 +1,11 @@
 """Exposes common paths for manipulating datasets and generating figures."""
 from pathlib import Path
 
+import git
+
 # Absolute path to the top level of the repository
-root = Path(__file__).resolve().parents[2].absolute()
+repo = git.Repo(".", search_parent_directories=True)
+root = Path(repo.working_tree_dir).resolve().absolute()
 
 # Absolute path to the `src` folder
 src = root / "src"

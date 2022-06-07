@@ -1,31 +1,33 @@
+import paths
+
 rule train_two_moons_flow:
     output:
-        "src/data/two_moons_flow.pzflow.pkl"
+        paths.data / "two_moons_flow.pzflow.pkl"
     cache:
         True
     script:
-        "src/scripts/train_two_moons_flow.py"
+        paths.scripts / "forward_model" / "train_two_moons_flow.py"
 
 rule train_main_galaxy_flow:
     output:
-        directory("src/data/main_galaxy_flow")
+        directory(paths.data / "main_galaxy_flow")
     cache:
         True
     script:
-        "src/scripts/train_main_galaxy_flow.py"
+        paths.scripts / "forward_model" / "train_main_galaxy_flow.py"
 
 rule train_conditional_galaxy_flow:
     output:
-        directory("src/data/conditional_galaxy_flow")
+        directory(paths.data / "conditional_galaxy_flow")
     cache:
         True
     script:
-        "src/scripts/train_conditional_galaxy_flow.py"
+        paths.scripts / "forward_model" / "train_conditional_galaxy_flow.py"
 
 rule simulate_pzflow_catalog:
     output:
-        "src/data/pzflow_catalog.pkl"
+        paths.data / "pzflow_catalog.pkl"
     cache:
         True
     script:
-        "src/scripts/simulate_pzflow_catalog.py"
+        paths.scripts / "forward_model" / "simulate_pzflow_catalog.py"

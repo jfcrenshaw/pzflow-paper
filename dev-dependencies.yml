@@ -15,6 +15,7 @@ dependencies:
   - flake8-markdown=0.3.0
   - flake8-print=5.0.0
   - flake8-simplify=0.19.2
+  - gitpython=3.1.18
   - isort=5.10.1
   - jupyterlab=3.4.2
   - matplotlib=3.5.2
@@ -29,3 +30,4 @@ dependencies:
       - flake8-eradicate==1.2.1
       - pzflow==3.0.2
       - showyourwork==0.3.0.dev8
+      - .

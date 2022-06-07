@@ -14,3 +14,9 @@ src/tex/figures/*
 __pycache__
 
 **.ipynb_checkpoints/
+
+# utils egg
+.utils.egg-info
+
+# utils build
+build/
