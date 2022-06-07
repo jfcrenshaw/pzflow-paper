@@ -1,8 +1,11 @@
 """Plot distribution of r-i vs redshift for CosmoDC2 and PZFlow."""
 import matplotlib.pyplot as plt
 import pandas as pd
-import paths
 from pzflow import Flow
+from showyourwork.paths import user as Paths
+
+# instantiate the paths
+paths = Paths()
 
 # load the cosmoDC2 data
 data = pd.read_pickle(paths.data / "cosmoDC2_subset.pkl")

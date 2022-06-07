@@ -9,3 +9,4 @@ dependencies:
   - python=3.9
   - pip:
       - pzflow==3.0.0
+      - showyourwork==0.3.0.dev8

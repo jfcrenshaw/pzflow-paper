@@ -1,7 +1,10 @@
 """Train the flow for the two moons example."""
-import paths
 from pzflow import Flow
 from pzflow.examples import get_twomoons_data
+from showyourwork.paths import user as Paths
+
+# instantiate the paths
+paths = Paths()
 
 # load the two moons example data
 data = get_twomoons_data()

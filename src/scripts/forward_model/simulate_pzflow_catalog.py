@@ -1,8 +1,11 @@
 """Simulate a PZFlow-generated catalog of 1e6 galaxies."""
 import pandas as pd
-import paths
 from lsst_error_model import LSSTErrorModel
 from pzflow import Flow
+from showyourwork.paths import user as Paths
+
+# instantiate the paths
+paths = Paths()
 
 # generate true photometry (+ redshift)
 flow = Flow(file=paths.data / "main_galaxy_flow" / "flow.pzflow.pkl")

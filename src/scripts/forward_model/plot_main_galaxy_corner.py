@@ -3,9 +3,12 @@ import corner
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import paths
 from matplotlib.ticker import MaxNLocator
 from pzflow import Flow
+from showyourwork.paths import user as Paths
+
+# instantiate the paths
+paths = Paths()
 
 # set the number of samples to plot
 n_samples = 10_000

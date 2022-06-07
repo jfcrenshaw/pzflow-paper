@@ -1,7 +1,10 @@
 """Plot the training losses for the galaxy flows."""
 import matplotlib.pyplot as plt
 import numpy as np
-import paths
+from showyourwork.paths import user as Paths
+
+# instantiate the paths
+paths = Paths()
 
 # load the losses
 main_losses = np.load(paths.data / "main_galaxy_flow" / "losses.npy")

@@ -4,9 +4,12 @@ from pathlib import Path
 import numpy as np
 import optax
 import pandas as pd
-import paths
 from pzflow import Flow
 from pzflow.bijectors import Chain, RollingSplineCoupling, ShiftBounds
+from showyourwork.paths import user as Paths
+
+# instantiate the paths
+paths = Paths()
 
 # load the training data
 data = pd.read_pickle(paths.data / "cosmoDC2_subset.pkl")

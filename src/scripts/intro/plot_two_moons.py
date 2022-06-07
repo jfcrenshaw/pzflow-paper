@@ -1,10 +1,13 @@
 """Create the two moons example figure."""
 import matplotlib.pyplot as plt
 import numpy as np
-import paths
 from matplotlib.gridspec import GridSpec
 from pzflow import Flow
 from pzflow.examples import get_twomoons_data
+from showyourwork.paths import user as Paths
+
+# instantiate the paths
+paths = Paths()
 
 # load the two moons example data
 data = get_twomoons_data()
