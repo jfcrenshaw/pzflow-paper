@@ -480,7 +480,20 @@ This might occur, for example, if you include photometry from Euclid, which will
 You may also wish to marginalize over all values beyond a limiting magnitude if the galaxy was observed, but not detected in that band.
 This might occur, for example, in the low wavelength bands of Lyman dropout galaxies observed by LSST.
 
-\note{Figure of the posteriors.}
+\begin{figure}[t!]
+    \script{forward_model/plot_posteriors.py}
+    \begin{centering}
+        \includegraphics{figures/posteriors.pdf}
+        \caption{
+            True redshift posteriors for a galaxy representing different amounts of information.
+            The black posterior is calculated with the true magnitudes;
+            the blue posterior is calculated after adding photometric errors;
+            the orange posterior is calculated after adding photometric errors, but with the errors convolved during posterior calculation;
+            the green posteriors is the same as the orange, except with the $u$ band marginalized over.
+        }
+        \label{fig:posteriors}
+    \end{centering}
+\end{figure}
 
 Figure \ref{fig:posteriors} shows a number of redshift posteriors to visualize the effects of error convolution and band marginalization.
 The black posterior is calculated using the true galaxy magnitudes, while the blue posteriors is calculated after adding photometric errors.
