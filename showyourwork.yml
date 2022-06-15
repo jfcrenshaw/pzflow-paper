@@ -7,6 +7,12 @@ dependencies:
   src/scripts/forward_model/plot_main_galaxy_corner.py:
     - src/data/cosmoDC2_subset.pkl
     - src/data/main_galaxy_flow/
+  src/scripts/forward_model/plot_smooth_color_distribution.py:
+    - src/data/cosmoDC2_subset.pkl
+    - src/data/main_galaxy_flow/
+  src/scripts/forward_model/plot_posteriors.py:
+    - src/data/main_galaxy_flow/
+    - src/data/pzflow_catalog.pkl
   src/scripts/forward_model/train_conditional_galaxy_flow.py:
     - src/data/cosmoDC2_subset.pkl
   src/scripts/forward_model/plot_conditional_galaxy_corner.py:
@@ -15,9 +21,6 @@ dependencies:
   src/scripts/forward_model/simulate_pzflow_catalog.py:
     - src/data/main_galaxy_flow/
     - src/data/conditional_galaxy_flow/
-  src/scripts/forward_model/plot_posteriors.py:
-    - src/data/main_galaxy_flow/
-    - src/data/pzflow_catalog.pkl
   src/scripts/forward_model/plot_galaxy_losses.py:
     - src/data/main_galaxy_flow/
     - src/data/conditional_galaxy_flow/
