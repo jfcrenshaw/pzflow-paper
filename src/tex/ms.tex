@@ -497,17 +497,16 @@ This might occur, for example, in the low wavelength bands of Lyman dropout gala
 
 Figure \ref{fig:posteriors} shows a number of redshift posteriors to visualize the effects of error convolution and band marginalization.
 The black posterior is calculated using the true galaxy magnitudes, while the blue posteriors is calculated after adding photometric errors.
-Calculating the posterior using the noisy photometry results in a biased posterior.
+Calculating the posterior using the noisy photometry results in a posterior with very little support over the true redshift.
 The orange posterior has had the photometric errors convolved as in Equation \ref{eq:err-conv}.
-Convolving the errors de-biases the posterior, but the resultant posterior is broader, reflecting the increase uncertainty due to the photometric errors.
+Convolving the errors broadens the posterior so that the true redshift lies within the support of the posterior.
+This broadening reflects the increased uncertainty due to the photometric errors.
 Finally, the green posterior has had the $u$ band marginalized.
-This posterior is even broader, with a significant low-redshift tail, demonstrating how the loss of information in the $u$ band translates to a loss of information about the redshift.
-\note{WILL NEED TO UPDATE THIS AFTER MAKING THE NEW FIGURE.}
+This posterior favors lower redshifts, although has a high-redshift tail that covers the support of the previous posteriors. 
+This demonstrates how the $u$ band helps constrain the redshift, and the loss of this information leads to greater uncertainty.
 
 Calculating these posteriors enables direct comparison of true redshift posteriors (consistent with the photometric errors and missing bands) with the redshift posteriors estimated by photo-z estimators.
-This allows you to test photo-z estimation on a posterior-per-galaxy basis, which will alleviate the photo-z validation problems discovered by \citet{schmidt2020}.
-
-\note{Point towards the photo-z section for a more comprehensive discussion of posterior calculation.}
+This allows you to test photo-z estimation on a posterior-per-galaxy basis, which will alleviate the photo-z validation problems discovered by \citet{schmidt2020} and will be investigated in future DESC papers.
 
 
 \subsection{Additional properties with conditional flows}
