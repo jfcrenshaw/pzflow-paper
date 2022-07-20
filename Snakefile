@@ -36,3 +36,13 @@ rule simulate_pzflow_catalog:
         True
     script:
         "src/scripts/forward_model/simulate_pzflow_catalog.py"
+
+rule train_pz_ensemble:
+    input:
+        "src/data/pzflow_catalog.pkl"
+    output:
+        directory("src/data/pz_ensemble/")
+    cache:
+        True
+    script:
+        "src/scripts/photo-z/train_pz_ensemble.py"

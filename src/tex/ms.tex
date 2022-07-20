@@ -94,7 +94,7 @@ Maybe mention ShowYourWork and how the scripts and data are all available at the
             A normalizing flow demonstrated on the two moons data set from \texttt{scikit-learn}.
             The two moons data on the left is mapped onto a two dimensional uniform distribution by the bijection $f$.
             The data are colored by quadrant to visualize their image in the latent space.
-            You can sample the data distribution by sampling from the uniform distribution, and using $f^{-1}$ to map the back to the data space.
+            You can sample the data distribution by sampling from the uniform distribution, and using $f^{-1}$ to map the samples back to the data space.
         }
         \label{fig:two-moons}
     \end{centering}
@@ -568,6 +568,17 @@ This small catalog was generated for visualization purposes, but the normalizing
     Estimating posteriors with error convolution. \\
     Estimating posteriors with u band marginalization.
 }
+
+\begin{figure*}[t!]
+    \script{photo-z/plot_ensemble_posteriors.py}
+    \begin{centering}
+        \includegraphics{figures/ensemble_posteriors.pdf}
+        \caption{
+            \note{Write this caption}.
+        }
+        \label{fig:ensemble-posteriors}
+    \end{centering}
+\end{figure*}
 
 \subsection{Photo-z metrics}
 

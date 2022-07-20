@@ -9,3 +9,8 @@
 </a>
 
 Journal article for [PZFlow](https://jfcrenshaw.github.io/pzflow/) created using the [showyourwork](https://github.com/showyourwork/showyourwork) workflow.
+
+To Do:
+
+- clean up the train ensemble script
+- fix the artifact in the pz posteriors at z=3

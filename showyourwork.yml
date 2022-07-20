@@ -1,4 +1,4 @@
-version: 0.3.0.dev10
+version: 0.3.0
 dependencies:
   src/scripts/intro/plot_two_moons.py:
     - src/data/two_moons_flow.pzflow.pkl
@@ -24,6 +24,22 @@ dependencies:
   src/scripts/forward_model/plot_galaxy_losses.py:
     - src/data/main_galaxy_flow/
     - src/data/conditional_galaxy_flow/
+  src/scripts/photo-z/train_pz_ensemble.py:
+    - src/data/pzflow_catalog.pkl
+    - src/scripts/photo-z/load_pzflow_catalog.py
+  src/scripts/photo-z/plot_pz_ensemble_corner.py:
+    - src/data/pzflow_catalog.pkl
+    - src/scripts/photo-z/load_pzflow_catalog.py
+    - src/data/pz_ensemble/
+  src/scripts/photo-z/plot_ensemble_posteriors.py:
+    - src/data/pzflow_catalog.pkl
+    - src/scripts/photo-z/load_pzflow_catalog.py
+    - src/data/pz_ensemble/
+  src/scripts/photo-z/calculate_posteriors.py:
+    - src/data/pzflow_catalog.pkl
+    - src/scripts/photo-z/load_pzflow_catalog.py
+    - src/data/pz_ensemble/
+
 datasets:
   10.5072/zenodo.1069392:
     contents:
