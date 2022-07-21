@@ -46,3 +46,13 @@ rule train_pz_ensemble:
         True
     script:
         "src/scripts/photo-z/train_pz_ensemble.py"
+
+rule calculate_posteriors:
+    input:
+        "src/data/pzflow_catalog.pkl"
+    output:
+        "src/data/redshift_posteriors.pkl"
+    cache:
+        True
+    script:
+        "src/scripts/photo-z/calculate_posteriors.py"

@@ -52,6 +52,7 @@
     Normalizing flows are useful for modeling high-dimensional probability distributions.
     We give some background and introduce PZFlow, a Python package for statistical modeling of tabular data.
     We demonstrate via modeling photometry and redshifts for a galaxy catalog, and estimate photo-z posteriors.
+    Emphasize that while this paper applies the technique to photo-z's, this technique is powerful for any galaxy properties or tabular data in general.
     \end{abstract}
 
 % Main body with filler text
@@ -452,7 +453,7 @@ We note that these results were obtained without any extensive hyperparameter se
 
 With this normalizing flow, we have an efficient CosmoDC2 emulator that produces a smooth distribution of realistic galaxies up to high-redshifts.
 
-To simulate photometric errors, we use the LSST error model of \citet{ivezic2019}, except without the high-SNR assumptions made there (see Appendix B for details).
+To simulate photometric errors, we use the LSST error model of \citet{ivezic2019}, except without the high-SNR assumptions made there (see Appendix \ref{app:error-model} for details).
 
 \subsection{Calculating true posteriors}
 \label{sec:true-posteriors}
@@ -543,31 +544,50 @@ Aside from the change in inputs, the RQ-RSC has the same settings as listed for 
 
 The conditional flow is trained for \note{N} epochs using the same loss function and optimizer as before.
 \note{is the LR the same?}
-We sample a size and ellipticity for each galaxy in the PZFlow catalog created in the previous section (using the true magnitudes), and plot the distribution of these features against the distribution in the test set (Figure \note{N}).
+We sample a size and ellipticity for each galaxy in the PZFlow catalog created in the previous section (using the true magnitudes), and plot the distribution of these features against the distribution in the test set (Figure \ref{fig:conditional-corner}).
 Once again, we see that the normalizing flow does a good job of emulating the CosmoDC2 distribution.
 
 The final simulated catalog consists of $10^4$ galaxies, each with a redshift, $ugrizy$ magnitudes including photometric errors, a true photo-z posterior consistent with the photometric errors, a size, and an ellipticity.
-This small catalog was generated for visualization purposes, but the normalizing flows can be used to generate catalogs of arbitrarly large size (see Appendix C on benchmarking PZFlow).
+This small catalog was generated for visualization purposes, but the normalizing flows can be used to generate catalogs of arbitrarly large size (see Appendix \ref{app:benchmarking} on benchmarking PZFlow).
 
 
 \section{Photometric Redshift Estimation}
 \label{sec:photo-z}
 
+In addition to forward modeling, normalizing flows are powerful and flexible models for density estimation.
+This makes them useful tools for estimating posterior distributions for galaxy properties, conditioned on observed properties of the galaxy.
+A common example of this in cosmology is photometric redshift estimation, in which you try to estimate the redshift of a galaxy using its magnitude in several photometric bands.
+In this section, we will demonstrate this application to show how normalizing flows can be used for density estimation.
+
 \subsection{Training an Ensemble for photo-z estimation}
 
-\note{
-    Galaxy catalog created in the previous section that has true posteriors. \\
-    Ensembles. \\
-    Training with error sampling.
-}
+When forward modeling in Section \ref{sec:galaxy-catalog}, we wanted a realistic model that captured the relevant correlations between galaxy photometry, redshift, shape, and size.
+However, when estimating redshifts, we do not simply want a realistic model, but rather a model that matches our galaxy sample as closely as possible.
+
+When training deep learning models, the huge parameter space contains many different solutions, corresponding to different local minima in the parameter space.
+In the forward modeling application, we were content with finding a good local minimum, but in this application, we want to marginalize over the different potential models.
+
+A full marginalization over the model parameters would be too computationally expensive, so instead we opt for an ensemble of normalizing flows.
+In other words, we will train multiple normalizing flows under identical conditions, just with different random initializations of the model parameters.
+This will allow the optimization algorithm to explore different basins of attraction in the parameter space, allowing us to marginalize over different potential models.
+In the machine learning literature, this is known as a Deep Ensemble \needscite, a popular method for approximate bayesian marginalization \needscite.
+
+We train an ensemble of 4 normalizing flows, each with the same architecture and training schedule as the flow described in Section \ref{sec:galaxy-catalog}.
+PZFlow makes this easy to do automatically, by simply swapping \texttt{FlowEnsemble} for \texttt{Flow}.
+
+For the training set, we use 100,000 galaxies from the catalog created in Section \ref{sec:galaxy-catalog}.
+Each galaxy in the training set has a true redshift, and observed magnitudes in the $ugrizy$ bands, with corresponding photometric errors.
+To account for the photometric error, we resample the training set from the error distributions on each epoch.
+In other words, each epoch, we resample
+\begin{align}
+    m \sim p(\hat{m}, \sigma_m),
+\end{align}
+where $\hat{m}$ are the observed magnitudes with photometric errors $\sigma_m$, and $p(\hat{m}, \sigma_m)$ is a Gaussian in flux space.
+This allows our ensemble of flows to approximate the distribution $p(z, m)$.
+
+The training curves for the flows in the ensemble can be seen in Appendix \ref{app:training-details}.
 
 \subsection{Estimating posteriors}
-
-\note{
-    Estimating raw posteriors. \\
-    Estimating posteriors with error convolution. \\
-    Estimating posteriors with u band marginalization.
-}
 
 \begin{figure*}[t!]
     \script{photo-z/plot_ensemble_posteriors.py}
@@ -580,18 +600,92 @@ This small catalog was generated for visualization purposes, but the normalizing
     \end{centering}
 \end{figure*}
 
+Each flow estimates the posterior by marginalizing over the error distribution.
+We then average the posteriors from each flow in the ensemble.
+An example of this can be seen in Figure \ref{fig:ensemble-posteriors}.
+Each flow produces a PDF which may contain slightly different features in each case.
+By averaging over the individual posteriors, we select for features that are common between models, while smoothing over features that are present in only a single model.
+Compare these to the true posteriors.
+
+We can calculate posteriors for galaxies with missing magnitudes by marginalizing over the missing magnitudes.
+This might be useful when not every galaxy is observed in every band, in which case you can marginalize over the bands that were not observed, or in cases when a galaxy was observed but not detected in the band.
+You can then marginalize over values for the band that are beyond the limiting magnitude.
+This can also help you understand what information is included in each band and how the inclusion of that band improves photo-z estimation.
+
+For example, we randomly select \note{N} galaxies and estimate redshift posteriors while marginalizing over the $u$ band.
+These posteriors can be seen in Figure \note{N}.
+Mention how the loss of information degrades the posteriors.
+
+At some point in this section, note that we estimate posteriors for different galaxies than we trained on.
+
+
 \subsection{Photo-z metrics}
 
-\note{
-    Photo-z point plot. \\
-    Binned point metrics vs redshift. \\
-    Brier score and other PDF metrics.
-}
+In this section, we calculate common photo-z metrics to evaluate how well the ensemble of flows captures the information present in the catalog.
+We calculate each metric for the full catalog and the sub catalog with missing $u$ bands.
+Note that these metrics are optimistic in the sense that the training set is representative of the test set, which is usually not the case when applied to real galaxies.
+
+\begin{figure}[t!]
+    \script{photo-z/plot_pz_point_estimates.py}
+    \begin{centering}
+        \includegraphics{figures/pz_point_estimates.pdf}
+        \caption{
+            \note{Write this caption}.
+        }
+        \label{fig:point-estimates}
+    \end{centering}
+\end{figure}
+
+The most common point of comparison is photo-z point estimates.
+We make the common choice of selecting the mode of the posteriors.
+\note{something something.}
+
+\begin{figure}[t!]
+    \script{photo-z/plot_pit_histogram.py}
+    \begin{centering}
+        \includegraphics{figures/pit_histogram.pdf}
+        \caption{
+            \note{Write this caption}.
+        }
+        \label{fig:pit-histogram}
+    \end{centering}
+\end{figure}
+
+PIT metric.
+\note{something something.}
+Discuss the mode covering behavior of normalizing flows and how this relates to the PIT diagram.
+
+\begin{figure*}[t!]
+    \script{photo-z/plot_binned_metrics.py}
+    \begin{centering}
+        \includegraphics{figures/binned_metrics.pdf}
+        \caption{
+            \note{Write this caption}.
+        }
+        \label{fig:binned-metrics}
+    \end{centering}
+\end{figure*}
+
+Binned point metrics.
+Figure \ref{fig:binned-metrics}
+Defined in the science book.
+We plot against the requirements from the LSST SRD just to provide a reference for the scale.
+Seems to do well up to z~1.5.
+We note that for cosmology, it is okay for the bias to exceed the required limits, as long as the bias can be well determined via some calibration process, e.g. clustering redshifts.
+
+The previous metrics concerned photo-z point estimates, which are insufficient for modern science.
+The DC1 paper demonstrated that these metrics are not sufficient to validate the full posteriors produced by photo-z codes.
+The purpose of this paper is to produce catalogs with true posteriors, which we have done, so that you can evaluate metrics of the full posterior.
+We will not undertake a full analysis of the posteriors here, but will compute a few metrics to point in that direction.
+
+Calculate the KLD and maybe something else?
+
 
 
 \appendix
 
 \section{Training details}
+\label{app:training-details}
 
 \begin{figure*}[t!]
     \script{forward_model/plot_galaxy_losses.py}
@@ -605,15 +699,12 @@ This small catalog was generated for visualization purposes, but the normalizing
 \end{figure*}
 
 \section{LSST Error Model}
+\label{app:error-model}
 
 - Explain how I adapted the LSST Error Model to work for low-SNR galaxies
 
-\section{Failed experiments}
-
-- CentBeta - harder to train, slower, results aren't better
-- convolving Gaussian errors analytically (use the trained flow from above to plot the gradients of the spline or something and show that the necessary assumptions are not valid)
-
 \section{Benchmarking PZFlow}
+\label{app:benchmarking}
 
 
 \bibliography{references.bib}

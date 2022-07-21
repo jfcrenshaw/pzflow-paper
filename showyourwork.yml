@@ -39,6 +39,18 @@ dependencies:
     - src/data/pzflow_catalog.pkl
     - src/scripts/photo-z/load_pzflow_catalog.py
     - src/data/pz_ensemble/
+  src/scripts/photo-z/plot_pz_point_estimates.py:
+    - src/data/pzflow_catalog.pkl
+    - src/scripts/photo-z/load_pzflow_catalog.py
+    - src/data/redshift_posteriors.npz
+  src/scripts/photo-z/plot_pit_histogram.py:
+    - src/data/pzflow_catalog.pkl
+    - src/scripts/photo-z/load_pzflow_catalog.py
+    - src/data/redshift_posteriors.npz
+  src/scripts/photo-z/plot_binned_metrics.py:
+    - src/data/pzflow_catalog.pkl
+    - src/scripts/photo-z/load_pzflow_catalog.py
+    - src/data/redshift_posteriors.npz
 
 datasets:
   10.5072/zenodo.1069392:
