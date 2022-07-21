@@ -34,7 +34,6 @@ bin_idx = np.digitize(z_spec, bins)
 bin_z = []
 bias = []
 sigma_iqr = []
-mad = []
 outlier_frac = []
 for i in range(len(bins)):
     # calculate the mean redshift of the bin
