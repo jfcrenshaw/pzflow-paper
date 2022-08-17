@@ -49,9 +49,10 @@ rule train_pz_ensemble:
 
 rule calculate_posteriors:
     input:
-        "src/data/pzflow_catalog.pkl"
+        "src/data/pzflow_catalog.pkl",
+        "src/data/pz_ensemble/"
     output:
-        "src/data/redshift_posteriors.pkl"
+        "src/data/redshift_posteriors.npz"
     cache:
         True
     script:

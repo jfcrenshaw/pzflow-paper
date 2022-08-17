@@ -11,14 +11,6 @@ from pzflow import FlowEnsemble
 from pzflow.bijectors import Chain, ColorTransform, RollingSplineCoupling, ShiftBounds
 from showyourwork.paths import user as Paths
 
-"""
-TO DO:
-------
-- fix the NaN issue that requires such a big buffer on the ShiftBounds range.
-- look at the losses. Make sure this training scheme is good. Also figure out a
-    good way to concatenate the losses
-"""
-
 # instantiate the paths
 paths = Paths()
 
@@ -40,7 +32,7 @@ mag_idx = [train_set.columns.get_loc(band) for band in "ugrizy"]
 # the magnitudes and colors so that the flow can sample a little
 colors = -np.diff(train_set[list("ugrizy")].to_numpy())
 mins = np.concatenate(([0, train_set["i"].min() - 0.1], colors.min(axis=0)))
-maxs = np.concatenate(([3, train_set["i"].max() + 0.1], colors.max(axis=0)))
+maxs = np.concatenate(([4, train_set["i"].max() + 0.1], colors.max(axis=0)))
 
 # I will add buffers to the mins and maxs in case that the train set
 # doesn't cover the full range of the test set

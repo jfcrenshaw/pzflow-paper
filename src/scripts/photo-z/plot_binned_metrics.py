@@ -70,7 +70,7 @@ ax1.plot(bins, +0.003 * np.ones(len(bins)), c="k", ls="--", alpha=0.75)
 ax1.plot(bins, -0.003 * np.ones(len(bins)), c="k", ls="--", alpha=0.75)
 
 ax2.set(
-    xlabel="redshift", ylabel="$\sigma_{\mathrm{IQR}}$", xlim=(bins.min(), bins.max())
+    xlabel="redshift", ylabel="scatter", xlim=(bins.min(), bins.max())
 )
 ax2.plot(bin_z, sigma_iqr)
 ax2.plot(bins, 0.02 * np.ones(len(bins)), c="k", ls="--", alpha=0.75)

@@ -18,7 +18,7 @@ grid = np.linspace(0, 3.5, 351)
 
 # calculate posteriors
 pdfs = flowEns.posterior(
-    test_set[:1000],  # remove this for final paper!
+    test_set[:100_000],
     "redshift",
     grid,
     err_samples=10,
