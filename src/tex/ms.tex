@@ -603,7 +603,7 @@ This will allow the optimization algorithm to explore different basins of attrac
 In the machine learning literature, this is known as a Deep Ensemble \citep{lakshminarayanan2017}, a popular method for approximate bayesian marginalization \citep{wilson2020,fort2020}.
 
 We train an ensemble of 4 normalizing flows, each with the same architecture and training schedule as the flow described in Section \ref{sec:galaxy-catalog}.
-PZFlow makes this easy to do automatically, by simply swapping \texttt{FlowEnsemble} for \texttt{Flow}.
+PZFlow makes this easy to do automatically, by simply swapping \texttt{FlowEnsemble} for \texttt{Flow} in the code.
 
 For the training set, we use 100,000 galaxies from the catalog created in Section \ref{sec:galaxy-catalog}.
 Each galaxy in the training set has a true redshift and observed magnitudes in the $ugrizy$ bands, with corresponding photometric errors.
@@ -751,25 +751,52 @@ A comprehensive evaluation of the full posteriors from photo-z estimators is a g
         \includegraphics{figures/galaxy_flow_losses.pdf}
         \caption{
             Training losses for the galaxy flows.
-            After epoch 50 and 100, you can see a drop in the loss due to the decrease in the learning rate.
+            Left: losses for the normal flow.
+            After epochs 50 and 100, you can see a drop in the loss due to the decrease in the learning rate.
+            Right: losses for the conditional flow.
+            After epochs 150 and 300, you can see a drop in the loss due to the decrease in the learning rate.
         }
         \label{fig:galaxy-flow-losses}
     \end{centering}
 \end{figure*}
 
-\note{the main flow:}
-We trained the normalizing flow for 150 epochs using the Adam optimizer \citep{adam} (with a learning rate of $10^{-3}$, that decreased by a factor of 10 every 50 epochs) to minimize the negative log-likelihood,
+\begin{figure}[t!]
+    \script{photo-z/plot_ensemble_losses.py}
+    \begin{centering}
+        \includegraphics{figures/ensemble_losses.pdf}
+        \caption{
+            Training losses for the four flows in the flow ensemble.
+            You can see that each of the flow achieves a different minimum loss.
+            After epochs 50 and 100, you can see a drop in the loss due to the decrease in the learning rate.
+        }
+        \label{fig:ensemble-losses}
+    \end{centering}
+\end{figure}
+
+In this section we list some technical details of training the normalizing flows.
+Every flow is trained via minimizing the negative log-likelihood
 \begin{align}
     \mathcal{L} = - \, \mathbb{E}[ \, \log p(x) \, ],
 \end{align}
 where the expectation is performed over galaxies in the training set and $p(x)$ is defined in Equation \ref{eq:px}.
+
+For the main flow in Section \ref{sec:galaxy-catalog}, we trained for 150 epochs.
+We used the Adam optimizer \citep{adam}, starting with a learning rate of $10^{-3}$.
+We decreased the learning rate by a factor of 10 every 50 epochs.
 Training took 7 minutes on a Tesla P100 12GB GPU.
+The training loss for this flow is in the left panel of Figure \ref{fig:galaxy-flow-losses}.
 
+For the conditional flow in \ref{sec:galaxy-catalog}, we trained for 450 epochs.
+Again, we used Adam with an initial learning rate of $10^{-3}$.
+We decreased the learning rate by a factor of 10 every 150 epochs.
+The training loss for this flow is in the right panel of Figure \ref{fig:galaxy-flow-losses}.
 
-\note{
-    Need to add the curves for the ensembles.
-    Move discussion of epochs and learning rates here too?    
-}
+For each of the flows that make up the flow ensemble in \ref{sec:photo-z}, we trained for 150 epochs using the Adam optimizer.
+We started each with a learning rate of $10^{-4}$, and decreased the learning rate by a factor of 10 every 50 epochs.
+The training loss for the ensemble is in Figure \ref{fig:ensemble-losses}.
+You can see that each of the flows achieves a different minimum loss.
+Apparently, each has found a different potential solution in the neural network's parameter space.
+
 
 \section{LSST Error Model}
 \label{app:error-model}

@@ -21,9 +21,6 @@ dependencies:
   src/scripts/forward_model/simulate_pzflow_catalog.py:
     - src/data/main_galaxy_flow/
     - src/data/conditional_galaxy_flow/
-  src/scripts/forward_model/plot_galaxy_losses.py:
-    - src/data/main_galaxy_flow/
-    - src/data/conditional_galaxy_flow/
   src/scripts/photo-z/train_pz_ensemble.py:
     - src/data/pzflow_catalog.pkl
     - src/scripts/photo-z/load_pzflow_catalog.py
@@ -58,6 +55,11 @@ dependencies:
     - src/data/pzflow_catalog.pkl
     - src/scripts/photo-z/load_pzflow_catalog.py
     - src/data/redshift_posteriors.npz
+  src/scripts/forward_model/plot_galaxy_losses.py:
+    - src/data/main_galaxy_flow/
+    - src/data/conditional_galaxy_flow/
+  src/scripts/forward_model/plot_ensemble_losses.py:
+    - src/data/pz_ensemble/
 
 datasets:
   10.5072/zenodo.1069392:
