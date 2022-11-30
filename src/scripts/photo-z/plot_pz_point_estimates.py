@@ -24,7 +24,7 @@ z_spec = test_set.redshift[: len(z_phot)].to_numpy()
 idx = np.where(z_phot > 0)
 
 # create the figure
-fig, ax = plt.subplots(figsize=(3.3, 2.6), constrained_layout=True, dpi=200)
+fig, ax = plt.subplots(figsize=(3.3, 2.7), constrained_layout=True, dpi=200)
 hb = ax.hexbin(z_spec[idx], z_phot[idx], extent=(0, 3, 0, 3), gridsize=205, bins="log")
 cb = fig.colorbar(hb, ax=ax)
 cb.set_label("Galaxies")

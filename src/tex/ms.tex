@@ -47,41 +47,50 @@
 
 \collaboration{99}{(The LSST Dark Energy Science Collaboration)}
 
-% Abstract
-\begin{abstract}
-    Normalizing flows are useful for modeling high-dimensional probability distributions.
-    We give some background and introduce PZFlow, a Python package for statistical modeling of tabular data.
-    We demonstrate via modeling photometry and redshifts for a galaxy catalog, and estimate photo-z posteriors.
-    Emphasize that while this paper applies the technique to photo-z's, this technique is powerful for any galaxy properties or tabular data in general.
-    \end{abstract}
 
-% Main body with filler text
+\begin{abstract}
+    Normalizing flows are powerful tools for learning high-dimensional probability distributions from samples thereof.
+    We introduce PZFlow, a Python package for the statistical modeling of tabular data using normalizing flows.
+    We use PZFlow to model the seven dimensional space of galaxy redshift and LSST photometry.
+    Using these normalizing flows, we forward model galaxy catalogs in which each galaxy property has an associated ``true'' posterior distribution.
+    We discuss the importance of these posteriors for the comprehensive evaluation of the redshift posteriors produced by photometric redshift (photo-z) estimators.
+    We also demonstrate the use of an ensemble of normalizing flows for photo-z estimation.
+    While we focus on photo-z estimation and validation, we emphasize that these methods are applicable to any galaxy properties, or any other tabular data.
+\end{abstract}
+
+
 \section{Introduction}
 \label{sec:intro}
 
 Astronomical data represent realizations of complex probability distributions.
-Need to write more here.
+A common goal in research is to infer the underlying distribution from a limited set of noisy data, and to use this distribution to estimate posterior distributions over galaxy and population parameters.
+An important example is photometric redshift (photo-z) estimation, where galaxy redshift posteriors are estimated from galaxy photometry, using a model informed by a training set of spectroscopic galaxy data \citep{newman2022}.
+These redshift posteriors are then used in analyses that estimate posterior distributions for the cosmological parameters of interest \citep{descSRD}.
 
-While direct access to the probability distributions that characterize our data is usually impossible, machine learning provides powerful tools to learn these distributions from samples thereof.
-Generative Adversarial Networks (GANs; \needscite) and Variational Autoencoders (VAEs; \needscite) are two popular methods that provide generative models trained on samples.
-However, neither of these methods allow exact evaluation of probability densities.
+Knowledge of the underlying probability distributions is also valuable for simulation and forward modeling astronomical data sets.
+Simulating data sets with realistic statistical properties enables methodological development and the calibration of systematic uncertainties.
+Forward modeling also facilitates data augmentation (e.g. \citealt{lokken2022}) and the creation of large data challenges (e.g. \citealt{kessler2019, dc2, cosmodc2}), which are becoming more prevalent in the big data era of astronomy.
 
-Normalizing flows are a deep learning tool for density estimation and generative modeling that allow efficient sampling and exact likelihood calculation.
-The ability to generate samples from a probability distribution with respect to which you can calculate exact likelihoods is very powerful for generative modeling, as you can provide a notion of ``true'' posteriors over sample properties when simulating new data.
-For example, when simulating galaxy catalogs for photometric redshift (photo-z) estimation, you can calculate the ``true'' redshift posterior for each galaxy.
-This is useful for ...
+Inferring the underlying probability distribution from a high-dimensional data set is a difficult problem, and many machine learning tools have been developed for this task.
+Two popular examples from deep learning are Generative Adversarial Networks (GANs; \citealt{goodfellow2014}) and Variational Autoencoders (VAEs; \citealt{kingma2014}).
+Both methods excel at forward modeling complex data sets, but neither allow exact likelihood inference.
+
+Normalizing flows are a deep learning tool that excel at forward modeling, but also allow exact likelihood inference.
+They operate by learning an invertible transformation of the data distribution into a simpler, tractable distribution (such as a normal distribution, hence the name).
+This allows sampling and likelihood inference to be performed within the context of the simple distribution, with the normalizing flow acting as a translator between these samples and likelihoods, and their corresponding values in the context of the data distribution.
+
+Once trained, a normalizing flow can forward model data with realistic statistical correlations, and since normalizing flows provide exact likelihood inference, each property of the generated data has a ``true'' posterior.
+When calculating these posteriors, you can convolve error distributions, and marginalize over chosen properties.
+Access to ``true'' posteriors is very valuable for the development and validation of analysis pipelines that include posterior estimation, such as the photo-z estimators used in much of astrophysics and cosmology.
 
 To facilitate the statistical modeling of galaxy catalogs and other astronomical data sets, we have developed PZFlow, a normalizing flow package for python.
 With relatively little tuning required by the user, PZFlow can provide a generative model for any tabular data, including continuous and discrete variables, and variables with Euclidean or periodic topology.
 In addition to generative modeling, PZFlow can calculate posteriors over any columns in your data set, and can convolve errors and marginalize over missing columns while training the model or calculating posteriors for samples.
 
-\note{[need to work in citations to Francois' paper on Deep Generative Models for Galaxy Image Sims, and any other examples of normalizing flows in the astronomy literature.]}
-
-Describe outline of the paper\dots
-
-Mention PZFlow and note that all of the NFs in this paper were created using it.
-
-Maybe mention ShowYourWork and how the scripts and data are all available at the links in the paper.
+In this paper, we provide the background on normalizing flows (Section \ref{sec:nf}) required to understand PZFlow (Section \ref{sec:pzflow}).
+We then use PZFlow to simulate a galaxy catalog (Section \ref{sec:galaxy-catalog}), where each object has photometry (including errors), size, ellipticity, redshift, and a true redshift posterior.
+We also demonstrate using PZFlow as a density estimator, via the example of photo-z estimation (Section \ref{sec:photo-z}).
+We conclude in Section \ref{sec:conclusion}.
 
 
 \section{Normalizing Flows}
@@ -120,7 +129,7 @@ If we further assume that is invertible, we can sample from the data distributio
 \end{align}
 
 Figure \ref{fig:two-moons} shows an example of a normalizing flow that transforms the \texttt{scikit-learn} two moons distribution into a uniform distribution.
-The data points are colored by quadrant to visualize their image under the bijection $f$.
+The data points are colored by quadrant to visualize their image under $f$.
 
 The following sections discuss how to build a normalizing flow to model data with various features.
 Section \ref{sec:bijections} discusses the bijection $f$ and introduces the building blocks from which our bijections will be built;
@@ -252,6 +261,7 @@ This reduces the complexity of working with the normalizing flow and ensures tha
 
 
 \subsection{Choosing a latent distribution}
+\label{sec:latent}
 
 In principle, with a sufficiently expressive bijection, the choice of latent distribution does not matter as long as it is a distribution in which you can easily sample and calculate densities.
 However, in practice, bijections are limited in expressiveness, i.e. they cannot necessarily transform any arbitrary data distribution into any arbitrary latent distribution.
@@ -602,7 +612,8 @@ The training curves for the flows in the ensemble can be seen in Appendix \ref{a
             Flows 1-4 label the individual posteriors produced by each of the flows that make up the ensemble.
             The dashed black line is the mean of these individual posteriors and is the value used by the ensemble.
             The vertical gray line labeled ``Truth'' denotes the true redshift of the galaxy.
-            Note the posteriors for most galaxies are not this broad or multimodal. 
+            Note these galaxies were specifically chosen for their broad, multimodal posteriors.
+            The posteriors of most galaxies are unimodal with sharp peaks.
         }
         \label{fig:ensemble-posteriors}
     \end{centering}
@@ -644,7 +655,6 @@ Note that these metrics are optimistic in the sense that the training set is rep
         \includegraphics{figures/pz_point_estimates.pdf}
         \caption{
             Comparing the photo-z point estimates to the true redshifts in the catalog.
-            The black diagonal line represents perfect photo-z performance.
         }
         \label{fig:point-estimates}
     \end{centering}
@@ -660,7 +670,7 @@ We compute metrics of the quantity $\Delta z = (z_\text{phot} - z_\text{true}) /
         \includegraphics{figures/binned_metrics.pdf}
         \caption{
             The bias, scatter, and catastrophic outlier fraction of the photo-z point estimates as a function of true galaxy redshift.
-            The dashed black lines represent the science requirements for LSST cosmology as stated in the LSST SRD \needscite.
+            The dashed black lines represent the science requirements for LSST cosmology as stated in the LSST SRD \citep{descSRD}.
             These lines are to provide a sense of scale for these metrics.
             You can see that PZFlow meets the bias and scatter requirements up to redshift $\sim$ 1.5, while meeting the outlier fraction requirements for all redshifts.
             We note that individual redshifts do not actually need to meet the bias requirement as long as the bias can be well calibrated via some other source, e.g. galaxy clustering.
@@ -698,23 +708,19 @@ The PIT metric is used to determine if posteriors are well calibrated, i.e. if t
 The PIT histogram for our estimator is shown in Figure \ref{fig:pit-histogram}.
 Ideally, this histogram would be uniform and match the dashed horizontal line.
 The fact that the histogram bulges at the center indicates that our estimator is too conservative -- i.e. the posteriors it produces are too broad.
-This can be explained by the fact that normalizing flows exhibit mode covering behavior (the opposite of the mode collapse seen in GANsl; \citealt{salimans2016}).
-In other words, because normalizing flows are trained via maximum likelihood estimation on the training samples, they receive very high penalties for missing any modes in the data.
-As a result, they tend to conservatively spread out their density, in order to avoid any missed modes.
+This can be explained by the fact that normalizing flows exhibit mode covering behavior (the opposite of the mode collapse seen in GANs; \citealt{salimans2016}).
+In other words, because normalizing flows are trained by maximizing the likelihood of the training samples, they receive very high penalties for missing any modes in the data.
+As a result, they tend to conservatively spread out their density, in order to avoid missing any modes.
 This results in overly conservative posterior predictions.
 The low values at the edges of the PIT histogram indicate the relative rarity of catastrophic outliers, which is also reflected in the far right panel of Figure \ref{fig:binned-metrics}, where you can see that our estimator meets the requirement on the outlier fraction at all redshifts.
 
 The previous metrics analyze photo-z performance for point estimates, which are insufficient for modern cosmology \citep{newman2022}, and for ensembles of posteriors, which is often not a good indicator of photo-z performance for science applications \citep{schmidt2020}.
-One of the purposes of this paper is to create a galaxy catalog for which each galaxy has a true redshift posterior, which will enable more comprehensive evaluation of photo-z estimators.  
-
-\note{NEED TO FINISH WRITING THIS}
-We will not undertake a full analysis of the posteriors here, but will compute a few metrics to point in that direction.
-Calculate the KLD and maybe something else?
-Point towards RAIL.
+The methods introduced in this paper allow one to create galaxy catalogs for which each galaxy has a true redshift posterior, which will enable more comprehensive evaluation of photo-z estimators.
+A comprehensive evaluation of the full posteriors from photo-z estimators is a goal of our future work.
 
 
 \section{Conclusion}
-
+\label{sec:conclusion}
 
 
 
