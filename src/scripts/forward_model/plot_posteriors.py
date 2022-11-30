@@ -1,3 +1,4 @@
+"""Plot the true, convolved, etc posteriors for a galaxy."""
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -98,8 +99,8 @@ ax1.plot(grid, pdfs_no_u[0], label="$u$ marginalized")
 ax1.set(xlabel="redshift", xlim=(0.1, 0.6), yticks=[])
 
 # put the legend in axis 2
-h, l = ax1.get_legend_handles_labels()
-ax2.legend(h, l, ncol=2, fontsize=9, handlelength=1.5, loc=10, frameon=False)
+handles, labels = ax1.get_legend_handles_labels()
+ax2.legend(handles, labels, ncol=2, fontsize=9, handlelength=1.5, loc=10, frameon=False)
 ax2.axis(False)  # hide the axes
 
 fig.savefig(paths.figures / "posteriors.pdf")

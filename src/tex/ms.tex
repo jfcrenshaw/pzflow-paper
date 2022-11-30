@@ -568,6 +568,22 @@ This small catalog was generated for visualization purposes, but the normalizing
 \section{Photometric Redshift Estimation}
 \label{sec:photo-z}
 
+\begin{figure*}[t!]
+    \script{photo-z/plot_ensemble_posteriors.py}
+    \begin{centering}
+        \includegraphics{figures/ensemble_posteriors.pdf}
+        \caption{
+            The ensemble of posteriors for three example galaxies.
+            Flows 1-4 label the individual posteriors produced by each of the flows that make up the ensemble.
+            The dashed black line is the mean of these individual posteriors and is the value used by the ensemble.
+            The vertical gray line labeled ``Truth'' denotes the true redshift of the galaxy.
+            Note these galaxies were specifically chosen for their broad, multimodal posteriors.
+            The posteriors of most galaxies are unimodal with sharp peaks.
+        }
+        \label{fig:ensemble-posteriors}
+    \end{centering}
+\end{figure*}
+
 In addition to forward modeling, normalizing flows are powerful and flexible models for density estimation.
 This makes them useful tools for estimating posterior distributions for galaxy properties, conditioned on observed features of the galaxy.
 A common example of this in cosmology is photometric redshift estimation, in which you try to estimate the redshift of a galaxy using its magnitude in several photometric bands.
@@ -601,23 +617,8 @@ This allows our ensemble of flows to approximate the distribution $p(z, m)$.
 
 The training curves for the flows in the ensemble can be seen in Appendix \ref{app:training-details}.
 
-\subsection{Estimating posteriors}
 
-\begin{figure*}[t!]
-    \script{photo-z/plot_ensemble_posteriors.py}
-    \begin{centering}
-        \includegraphics{figures/ensemble_posteriors.pdf}
-        \caption{
-            The ensemble of posteriors for three example galaxies.
-            Flows 1-4 label the individual posteriors produced by each of the flows that make up the ensemble.
-            The dashed black line is the mean of these individual posteriors and is the value used by the ensemble.
-            The vertical gray line labeled ``Truth'' denotes the true redshift of the galaxy.
-            Note these galaxies were specifically chosen for their broad, multimodal posteriors.
-            The posteriors of most galaxies are unimodal with sharp peaks.
-        }
-        \label{fig:ensemble-posteriors}
-    \end{centering}
-\end{figure*}
+\subsection{Estimating posteriors}
 
 Each flow in the ensemble estimates the posterior for each galaxy by marginalizing over the photometric errors:
 \begin{align}
@@ -637,10 +638,24 @@ This might be useful when not every galaxy is observed in every band, in which c
 Or if a galaxy was observed but not detected in the band, you can marginalize over values for the band that are beyond the limiting magnitude.
 You can also marginalize over bands for which you have a magnitude to understand what information about redshift is included in that band.
 
-\note{Think about what I want to do here.}
-For example, we randomly select \note{N} galaxies and estimate redshift posteriors while marginalizing over the $u$ band.
-These posteriors can be seen in Figure \note{N}.
-Mention how the loss of information degrades the posteriors.
+\begin{figure}[t!]
+    \script{photo-z/plot_marginalized_posterior.py}
+    \begin{centering}
+        \includegraphics{figures/posterior_marginalized.pdf}
+        \caption{
+            Redshift posteriors for an example galaxy.
+            The vertical red line indicates the true redshift.
+            The black posterior is estimated using the information from all 6 LSST bands (and includes convolution of the photometric errors).
+            The gold posterior has had the $u$ band marginalized, which opens up a second high-redshift mode.
+        }
+        \label{fig:posterior_marginalized}
+    \end{centering}
+\end{figure}
+
+Figure \ref{fig:posterior_marginalized} compares posteriors with and without $u$ band information for an example galaxy.
+It is clear how losing the $u$ band information increases the uncertainty in the redshift inference.
+In this instance, a second potential redshift mode is created.
+Conversely, this demonstrates how the addition of $u$ band information rules out the higher redshift solution for this galaxy.
 
 
 \subsection{Photo-z metrics}
@@ -648,6 +663,18 @@ Mention how the loss of information degrades the posteriors.
 In this section, we calculate common photo-z metrics to evaluate how well the ensemble of flows captures the information present in the catalog.
 We calculate each metric for the full catalog and the sub catalog with missing $u$ bands.
 Note that these metrics are optimistic in the sense that the training set is representative of the test set, which is usually not the case when applied to real galaxies.
+
+The most common metrics for photo-z estimation concern photo-z point estimates, which are a compression of the photo-z posterior to a single redshift estimate.
+We make the common choice of selecting the mode of the posteriors\footnote{The mean redshift is often a poor choice, since photo-z posteriors are generally multimodal, and so the mean value can lie between two modes at a redshift with very small probability density.}.
+We compute metrics of the quantity $\Delta z = (z_\text{phot} - z_\text{true}) / (1 + z_\text{true})$, where the denominator accounts for naturally greater uncertainties at high redshift.
+
+Figure \ref{fig:binned-metrics} shows the metrics from \citet{descSRD} as a function of true redshift.
+The bias is defined as the median of $\Delta z$; the scatter is defined as $\text{IQR} / 1.349$, where IQR is the interquartile range of $\Delta z$; the outlier fraction is defined as the fraction of galaxies for which $\Delta z$ is greater than three times the $\Delta z$ scatter.
+As a point of comparison, we plot the requirements for LSST cosmology in gray.
+
+Like many photo-z estimators, our estimator performs well to a redshift of approximately 1.5.
+At higher redshifts, our estimator does not meet the bias and scatter requirements, because there is very little training data in this redshift range.
+We note however that for many cosmology application, it is okay for the bias to exceed the required limits, as long as the bias can be well determined via some calibration process \citep{newman2022}.
 
 \begin{figure}[t!]
     \script{photo-z/plot_pz_point_estimates.py}
@@ -660,9 +687,16 @@ Note that these metrics are optimistic in the sense that the training set is rep
     \end{centering}
 \end{figure}
 
-The most common metrics for photo-z estimation concern photo-z point estimates, which are a compression of the photo-z posterior to a single redshift estimate.
-We make the common choice of selecting the mode of the posteriors\footnote{The mean redshift is often a poor choice, since photo-z posteriors are generally multimodal, and so the mean value can lie between two modes at a redshift with very small probability density.}.
-We compute metrics of the quantity $\Delta z = (z_\text{phot} - z_\text{true}) / (1 + z_\text{true})$, where the denominator accounts for naturally greater uncertainties at high redshift.
+Another common metric is the probability integral transform (PIT) (see e.g. \citealt{schmidt2020, dey2022}).
+The PIT metric is used to determine if posteriors are well calibrated, i.e. if true values fall within X\% confidence intervals X\% of the time.
+The PIT histogram for our estimator is shown in Figure \ref{fig:pit-histogram}.
+Ideally, this histogram would be uniform and match the dashed horizontal line.
+The fact that the histogram bulges at the center indicates that our estimator is too conservative -- i.e. the posteriors it produces are too broad.
+This can be explained by the fact that normalizing flows exhibit mode covering behavior (the opposite of the mode collapse seen in GANs; \citealt{salimans2016}).
+In other words, because normalizing flows are trained by maximizing the likelihood of the training samples, they receive very high penalties for missing any modes in the data.
+As a result, they tend to conservatively spread out their density, in order to avoid missing any modes.
+This results in overly conservative posterior predictions.
+The low values at the edges of the PIT histogram indicate the relative rarity of catastrophic outliers, which is also reflected in the far right panel of Figure \ref{fig:binned-metrics}, where you can see that our estimator meets the requirement on the outlier fraction at all redshifts.
 
 \begin{figure*}[t!]
     \script{photo-z/plot_binned_metrics.py}
@@ -679,13 +713,9 @@ We compute metrics of the quantity $\Delta z = (z_\text{phot} - z_\text{true}) /
     \end{centering}
 \end{figure*}
 
-Figure \ref{fig:binned-metrics} shows the metrics from \citet{descSRD} as a function of true redshift.
-The bias is defined as the median of $\Delta z$; the scatter is defined as $\text{IQR} / 1.349$, where IQR is the interquartile range of $\Delta z$; the outlier fraction is defined as the fraction of galaxies for which $\Delta z$ is greater than three times the $\Delta z$ scatter.
-As a point of comparison, we plot the requirements for LSST cosmology in gray.
-
-Like many photo-z estimators, our estimator performs well to a redshift of approximately 1.5.
-At higher redshifts, our estimator does not meet the bias and scatter requirements, because there is very little training data in this redshift range.
-We note however that for many cosmology application, it is okay for the bias to exceed the required limits, as long as the bias can be well determined via some calibration process \citep{newman2022}.
+The previous metrics analyze photo-z performance for point estimates, which are insufficient for modern cosmology \citep{newman2022}, and for ensembles of posteriors, which is often not a good indicator of photo-z performance for science applications \citep{schmidt2020}.
+The methods introduced in this paper allow one to create galaxy catalogs for which each galaxy has a true redshift posterior, which will enable more comprehensive evaluation of photo-z estimators.
+A comprehensive evaluation of the full posteriors from photo-z estimators is a goal of our future work.
 
 \begin{figure}[t!]
     \script{photo-z/plot_pit_histogram.py}
@@ -702,21 +732,6 @@ We note however that for many cosmology application, it is okay for the bias to 
         \label{fig:pit-histogram}
     \end{centering}
 \end{figure}
-
-Another common metric is the probability integral transform (PIT) (see e.g. \citealt{schmidt2020, dey2022}).
-The PIT metric is used to determine if posteriors are well calibrated, i.e. if true values fall within X\% confidence intervals X\% of the time.
-The PIT histogram for our estimator is shown in Figure \ref{fig:pit-histogram}.
-Ideally, this histogram would be uniform and match the dashed horizontal line.
-The fact that the histogram bulges at the center indicates that our estimator is too conservative -- i.e. the posteriors it produces are too broad.
-This can be explained by the fact that normalizing flows exhibit mode covering behavior (the opposite of the mode collapse seen in GANs; \citealt{salimans2016}).
-In other words, because normalizing flows are trained by maximizing the likelihood of the training samples, they receive very high penalties for missing any modes in the data.
-As a result, they tend to conservatively spread out their density, in order to avoid missing any modes.
-This results in overly conservative posterior predictions.
-The low values at the edges of the PIT histogram indicate the relative rarity of catastrophic outliers, which is also reflected in the far right panel of Figure \ref{fig:binned-metrics}, where you can see that our estimator meets the requirement on the outlier fraction at all redshifts.
-
-The previous metrics analyze photo-z performance for point estimates, which are insufficient for modern cosmology \citep{newman2022}, and for ensembles of posteriors, which is often not a good indicator of photo-z performance for science applications \citep{schmidt2020}.
-The methods introduced in this paper allow one to create galaxy catalogs for which each galaxy has a true redshift posterior, which will enable more comprehensive evaluation of photo-z estimators.
-A comprehensive evaluation of the full posteriors from photo-z estimators is a goal of our future work.
 
 
 \section{Conclusion}
