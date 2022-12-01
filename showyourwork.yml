@@ -58,7 +58,7 @@ dependencies:
   src/scripts/forward_model/plot_galaxy_losses.py:
     - src/data/main_galaxy_flow/
     - src/data/conditional_galaxy_flow/
-  src/scripts/forward_model/plot_ensemble_losses.py:
+  src/scripts/photo-z/plot_ensemble_losses.py:
     - src/data/pz_ensemble/
 
 datasets:

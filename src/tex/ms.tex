@@ -55,9 +55,10 @@
 \begin{abstract}
     Normalizing flows are powerful tools for learning high-dimensional probability distributions from samples thereof, and have many applications in astronomy, including posterior estimation and forward modeling.
     We introduce PZFlow, a Python package for the statistical modeling of tabular data using normalizing flows.
-    We use PZFlow to model photometric galaxy catalogs including redshifts, LSST photometry, size, and ellipticity.
-    We generate synthetic galaxy catalogs in which each galaxy has a ``true'' redshift posterior distribution, and discuss the importance of these true posteriors for the comprehensive evaluation of the redshift posteriors produced by photometric redshift (photo-z) estimators.
-    We also demonstrate the use of an ensemble of normalizing flows for photo-z estimation.
+    We use PZFlow to model photometric galaxy catalogs including redshifts, LSST photometry, size, and ellipticity, and generate a synthetic catalog.
+    In this catalog, each galaxy has a \emph{true} redshift posterior.
+    We discuss the importance of these true posteriors for the comprehensive evaluation of redshift posteriors produced by photometric redshift (photo-z) estimators.
+    We also demonstrate the use of an ensemble of normalizing flows for density estimation, applied to photo-z estimation.
     While we focus on photo-z estimation and validation, we emphasize that these methods are applicable to any galaxy properties, and any other tabular data.
 \end{abstract}
 
@@ -66,32 +67,32 @@
 \label{sec:intro}
 
 Astronomical data represent realizations of complex probability distributions.
-A common goal in research is to infer the underlying distribution from a limited set of noisy data, and to use this distribution to estimate posterior distributions over galaxy and population parameters.
+A common goal in research is to infer the underlying distribution from a limited set of noisy data, and use this distribution to estimate posterior distributions over galaxy and population parameters.
 An important example is photometric redshift (photo-z) estimation, where galaxy redshift posteriors are estimated from galaxy photometry, using a model informed by a training set of spectroscopic galaxy data \citep{newman2022}.
-These redshift posteriors are then used in analyses that estimate posterior distributions for the cosmological parameters of interest \citep{descSRD}.
+These redshift posteriors are then used to estimate posterior distributions for cosmological parameters \citep{descSRD}.
 
-Knowledge of the underlying probability distributions is also valuable for simulation and forward modeling astronomical data sets.
+Knowledge of the probability distributions underlying our data is also valuable for simulation and forward modeling astronomical data sets.
 Simulating data sets with realistic statistical properties enables methodological development and the calibration of systematic uncertainties.
 Forward modeling also facilitates data augmentation (e.g. \citealt{lokken2022}) and the creation of large data challenges (e.g. \citealt{kessler2019, dc2, cosmodc2}), which are becoming more prevalent in the big data era of astronomy.
 
 Inferring the underlying probability distribution from a high-dimensional data set is a difficult problem, and many machine learning tools have been developed for this task.
-Two popular examples from deep learning are Generative Adversarial Networks (GANs; \citealt{goodfellow2014}) and Variational Autoencoders (VAEs; \citealt{kingma2014}).
+Two popular deep learning examples are Generative Adversarial Networks (GANs; \citealt{goodfellow2014}) and Variational Autoencoders (VAEs; \citealt{kingma2014}).
 Both methods excel at forward modeling complex data sets, but neither allow exact likelihood inference.
 
-Normalizing flows are a deep learning tool that excel at forward modeling, but also allow exact likelihood inference.
-They operate by learning an invertible transformation of the data distribution into a simpler, tractable distribution (such as a normal distribution, hence the name).
-This allows sampling and likelihood inference to be performed within the context of the simple distribution, with the normalizing flow acting as a translator between these samples and likelihoods, and their corresponding values in the context of the data distribution.
+Normalizing flows, on the other hand, are a deep learning tool that excel at forward modeling, while also allowing exact likelihood inference.
+They operate by learning an invertible transformation of the data distribution into a simpler, tractable latent distribution (such as a normal distribution, hence the name \emph{normalizing} flow).
+This allows sampling and likelihood inference to be performed within the context of the latent distribution, with the normalizing flow acting as a translator between the latent samples and likelihoods, and their corresponding values in the context of the data distribution.
 
-Once trained, a normalizing flow can forward model data with realistic statistical correlations, and since normalizing flows provide exact likelihood inference, each property of the generated data has a ``true'' posterior.
+Once trained, a normalizing flow can forward model data with realistic statistical correlations, and since normalizing flows provide exact likelihood inference, each property of the generated data has a \emph{true} posterior.
 When calculating these posteriors, you can convolve error distributions, and marginalize over chosen properties.
-Access to ``true'' posteriors is very valuable for the development and validation of analysis pipelines that include posterior estimation, such as the photo-z estimators used in much of astrophysics and cosmology.
+Catalogs with \emph{true} posteriors are useful for the testing and validation of analysis pipelines that estimate posteriors, such as the photo-z estimators used in much of astrophysics and cosmology.
 
-To facilitate the statistical modeling of galaxy catalogs and other astronomical data sets, we have developed PZFlow, a normalizing flow package for python.
+To facilitate the statistical modeling of galaxy catalogs and other astronomical data sets, we have developed PZFlow, a normalizing flow package for Python.
 With relatively little tuning required by the user, PZFlow can provide a generative model for any tabular data, including continuous and discrete variables, and variables with Euclidean or periodic topology.
 In addition to generative modeling, PZFlow can calculate posteriors over any columns in your data set, and can convolve errors and marginalize over missing columns while training the model or calculating posteriors for samples.
 
 In this paper, we provide the background on normalizing flows (Section \ref{sec:nf}) required to understand PZFlow (Section \ref{sec:pzflow}).
-We then use PZFlow to simulate a galaxy catalog (Section \ref{sec:galaxy-catalog}), where each object has photometry (including errors), size, ellipticity, redshift, and a true redshift posterior.
+We then use PZFlow to simulate a galaxy catalog (Section \ref{sec:galaxy-catalog}), where each object has photometry, size, ellipticity, redshift, and a true redshift posterior.
 We also demonstrate using PZFlow as a density estimator, via the example of photo-z estimation (Section \ref{sec:photo-z}).
 We conclude in Section \ref{sec:conclusion}.
 
