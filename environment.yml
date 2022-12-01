@@ -8,5 +8,6 @@ dependencies:
   - pip=22.1.1
   - python=3.9
   - pip:
+      - photerr==1.0.1
       - pzflow==3.0.0
       - showyourwork==0.3.0

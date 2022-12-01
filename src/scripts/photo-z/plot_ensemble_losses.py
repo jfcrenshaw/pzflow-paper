@@ -16,7 +16,7 @@ fig, ax = plt.subplots(figsize=(3, 3), constrained_layout=True)
 for flow, loss in losses.items():
     ax.plot(loss, alpha=0.5, label=flow)
 ax.legend()
-ax.set(xlabel="Epochs", ylabel="Loss", ylim=(-1.6, 0))
+ax.set(xlabel="Epochs", ylabel="Loss", ylim=(-1.8, -1))
 
 # save the figure
 fig.savefig(paths.figures / "ensemble_losses.pdf")

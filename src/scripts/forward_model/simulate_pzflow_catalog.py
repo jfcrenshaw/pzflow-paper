@@ -1,6 +1,6 @@
 """Simulate a PZFlow-generated catalog of 1e6 galaxies."""
 import pandas as pd
-from lsst_error_model import LSSTErrorModel
+from photerr import LsstErrorModel
 from pzflow import Flow
 from showyourwork.paths import user as Paths
 
@@ -18,8 +18,8 @@ ellip_and_size = cond_flow.sample(
 )
 
 # simulate observations with the fiducial LSST error model
-err_model = LSSTErrorModel()
-obs_sample = err_model(truth_sample[list("ugrizy")], seed=2)
+err_model = LsstErrorModel(sigLim=1)
+obs_sample = err_model(truth_sample[list("ugrizy")], random_state=2)
 
 # relabel the true and observed values
 truth_sample = truth_sample.rename(

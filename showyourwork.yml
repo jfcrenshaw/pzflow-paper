@@ -40,7 +40,7 @@ dependencies:
     - src/data/pzflow_catalog.pkl
     - src/scripts/photo-z/load_pzflow_catalog.py
     - src/data/pz_ensemble/
-  src/scripts/photo-z/plot_marginalized_posteriors.py:
+  src/scripts/photo-z/plot_marginalized_posterior.py:
     - src/data/pzflow_catalog.pkl
     - src/data/redshift_posteriors_without_u.npz
   src/scripts/photo-z/plot_pz_point_estimates.py:

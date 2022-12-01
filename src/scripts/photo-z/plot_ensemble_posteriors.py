@@ -15,7 +15,7 @@ flowEns = FlowEnsemble(file=paths.data / "pz_ensemble" / "pz_ensemble.pzflow.pkl
 test_set = load_pzflow_catalog(subset="test")
 
 # select galaxies for plotting
-idx = [21, 54, 99]
+idx = [39, 52, 44]
 test_set = test_set.iloc[idx]
 
 # calculate posteriors
@@ -46,6 +46,6 @@ for i, ax in enumerate(axes):
     ax.set(yticks=[], xlabel="redshift", xlim=(grid.min(), grid.max()))
 
 # put a legend in the center
-axes[1].legend(loc="upper left")
+axes[1].legend(loc="upper right")
 
 fig.savefig(paths.figures / "ensemble_posteriors.pdf")

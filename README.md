@@ -10,14 +10,7 @@
 
 Journal article for [PZFlow](https://jfcrenshaw.github.io/pzflow/) created using the [showyourwork](https://github.com/showyourwork/showyourwork) workflow.
 
-To Do:
+To build the article:
 
-- clean up the train ensemble script
-- fix the artifact in the pz posteriors at z=3 (probably doable by increasing the redshift range to 3.5?)
-- when combining the loss dictionaries for the ensemble training, wrap the losses in float() so that they're not jax arrays and can be unpickled
-- create a plot of the ensemble training losses
-- write appendix A
-- add posterior estimation with missing u bands and add the missing u band variety to all of the metrics
-- actually write the photo-z section
-- write the conclusion and intro
-- insert all the citations
+1. install [showyourwork](https://github.com/showyourwork/showyourwork)
+2. run `showyourwork` from the base of the repo.

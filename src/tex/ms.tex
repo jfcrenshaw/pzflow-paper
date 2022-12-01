@@ -39,23 +39,26 @@
 
 \author{Alexander Gagliano}
 
+\author{Ziang Yan}
+
+\author{Andrew Connolly}
+
+\author{Francois Lanusse}
+
 \author{Alex Malz}
 
 \author{Sam Schmidt}
-
-\author{Francois Lanusse}
 
 \collaboration{99}{(The LSST Dark Energy Science Collaboration)}
 
 
 \begin{abstract}
-    Normalizing flows are powerful tools for learning high-dimensional probability distributions from samples thereof.
+    Normalizing flows are powerful tools for learning high-dimensional probability distributions from samples thereof, and have many applications in astronomy, including posterior estimation and forward modeling.
     We introduce PZFlow, a Python package for the statistical modeling of tabular data using normalizing flows.
-    We use PZFlow to model the seven dimensional space of galaxy redshift and LSST photometry.
-    Using these normalizing flows, we forward model galaxy catalogs in which each galaxy property has an associated ``true'' posterior distribution.
-    We discuss the importance of these posteriors for the comprehensive evaluation of the redshift posteriors produced by photometric redshift (photo-z) estimators.
+    We use PZFlow to model photometric galaxy catalogs including redshifts, LSST photometry, size, and ellipticity.
+    We generate synthetic galaxy catalogs in which each galaxy has a ``true'' redshift posterior distribution, and discuss the importance of these true posteriors for the comprehensive evaluation of the redshift posteriors produced by photometric redshift (photo-z) estimators.
     We also demonstrate the use of an ensemble of normalizing flows for photo-z estimation.
-    While we focus on photo-z estimation and validation, we emphasize that these methods are applicable to any galaxy properties, or any other tabular data.
+    While we focus on photo-z estimation and validation, we emphasize that these methods are applicable to any galaxy properties, and any other tabular data.
 \end{abstract}
 
 
@@ -101,7 +104,7 @@ We conclude in Section \ref{sec:conclusion}.
     \begin{centering}
         \includegraphics{figures/twomoons_example.pdf}
         \caption{
-            A normalizing flow demonstrated on the two moons data set from \texttt{scikit-learn}.
+            A normalizing flow demonstrated on the two moons data set from scikit-learn.
             The two moons data on the left is mapped onto a two dimensional uniform distribution by the bijection $f$.
             The data are colored by quadrant to visualize their image in the latent space.
             You can sample the data distribution by sampling from the uniform distribution, and using $f^{-1}$ to map the samples back to the data space.
@@ -128,7 +131,7 @@ If we further assume that is invertible, we can sample from the data distributio
     x = f^{-1}(u) \quad \text{where} \quad u \sim \pu.
 \end{align}
 
-Figure \ref{fig:two-moons} shows an example of a normalizing flow that transforms the \texttt{scikit-learn} two moons distribution into a uniform distribution.
+Figure \ref{fig:two-moons} shows an example of a normalizing flow that transforms the scikit-learn \citep{sklearn} two moons distribution into a uniform distribution.
 The data points are colored by quadrant to visualize their image under $f$.
 
 The following sections discuss how to build a normalizing flow to model data with various features.
@@ -375,10 +378,6 @@ PZFlow is a Python package for building normalizing flows, with a focus on easy 
 Data is handled in Pandas DataFrames \citep{pandas}, while the normalizing flows are implemented in Jax \citep{jax}, which allows for efficient, parallelizable, GPU-enabled calculations for very large data sets.
 The code is easily installable for the Python Package Index\footnote{\url{https://pypi.org/project/pzflow/}} (PyPI) and is hosted on Github,\footnote{\url{https://github.com/jfcrenshaw/pzflow}}.
 The documentation\footnote{\url{https://jfcrenshaw.github.io/pzflow/}} includes tutorial notebooks demonstrating the features mentioned in this paper on different example problems.
-
-PZFlow is a package for building normalizing flows in Python, with a focus on high-performance out-of-the-box modeling of high dimensional tabular data.
-Data is handled in Pandas DataFrames \citep{pandas} while the normalizing flows are implemented in Jax \citep{jax}, which allows efficient, parallelizable, GPU-enabled calculations for very large data sets.
-The code is easily installable from the Python Package Index\footnote{\url{https://pypi.org/project/pzflow/}} (PyPI) and is hosted on Github,\footnote{\url{https://github.com/jfcrenshaw/pzflow}} including several tutorial notebooks.
 
 The rest of this paper will demonstrate using PZFlow for the statistical modeling of galaxy catalogs.
 Section \ref{sec:galaxy-catalog} uses PZFlow to forward model a photometric catalog, including spectroscopic redshifts, Rubin photometry, ``true'' photo-z posteriors, ellipticities, and sizes.
@@ -734,11 +733,43 @@ A comprehensive evaluation of the full posteriors from photo-z estimators is a g
 \end{figure}
 
 
-\section{Conclusion}
+\section{Conclusion \& Summary}
 \label{sec:conclusion}
 
+In this paper we introduced PZFlow, a normalizing flow package in Python, designed for the statistical modeling of astronomical data sets.
+We used PZFlow to forward model galaxy catalogs that include photometry, redshifts, sizes, and ellipticities.
+In addition, each galaxy in our catalog has a true redshift posterior, which can be convolved with measurement errors.
+These true posteriors allow a direct evaluation of the posteriors produced by photo-z estimators.
+A similar comparison can be made to posterior estimates for any other galaxy property.
 
+Direct evaluation of photo-z posteriors is vital for future cosmology analyses which must use all of the information incorporated in the full redshift posteriors \citep{newman2022}.
+This is because only the full redshift posteriors allow one to account for degeneracies in color-redshift space, which will otherwise bias cosmological inference.
+Previous evaluations of photo-z performance focused on point estimates and metrics for ensembles of posteriors, but \citet{schmidt2020} showed these analyses are inadequate for modern cosmology.
+This work enables a future analysis of photo-z estimators on a per-posterior basis, which is a major goal of the LSST DESC.
 
+In addition to forward modeling galaxy catalogs, we demonstrated PZFlow's utility as a density estimator that can be applied to photo-z estimation and other statistical analyses.
+PZFlow achieves high accuracy with relatively little fine tuning and with very few modeling assumptions.
+PZFlow will be a powerful tool for the statistical analysis of tabular astronomical data.
+
+Note that the code to reproduce the figures in this paper is hosted publicly on Github\footnote{\url{https://github.com/jfcrenshaw/pzflow-paper}}, and the code for each individual figure can be reached by clicking on the Github logo in the margin next to the figure.
+
+\begin{acknowledgements}
+    JFC is supported by...
+\end{acknowledgements}
+
+\software{
+    adam \citep{adam},
+    corner \citep{corner},
+    dill \citep{dill},
+    jax \citep{jax},
+    jupyter \citep{jupyter},
+    matplotlib \citep{matplotlib},
+    numpy \citep{numpy},
+    pandas \citep{pandas,pandas-software},
+    scipy \citep{scipy},
+    showyourwork \citep{showyourwork},
+    scikit-learn \citep{sklearn}
+}
 
 \appendix
 
@@ -766,8 +797,7 @@ A comprehensive evaluation of the full posteriors from photo-z estimators is a g
         \includegraphics{figures/ensemble_losses.pdf}
         \caption{
             Training losses for the four flows in the flow ensemble.
-            You can see that each of the flow achieves a different minimum loss.
-            After epochs 50 and 100, you can see a drop in the loss due to the decrease in the learning rate.
+            We have zoomed in to the bottom of the loss curve so you can see that each of the flows converges to a different minimum loss.
         }
         \label{fig:ensemble-losses}
     \end{centering}
@@ -801,34 +831,35 @@ Apparently, each has found a different potential solution in the neural network'
 \section{LSST Error Model}
 \label{app:error-model}
 
-We estimate photometric errors for LSST using the error model from \citet{ivezic2019}, except we do not make the high SNR approximation used there.
+We estimate photometric errors for LSST using a generalization of the error model from \citet{ivezic2019}.
+To derive the error model, we start with the noise-to-signal ratio (NSR) for an object with photon count $C$ and background noise $N_0$ (which depends on seeing, read-out noise, etc.):
+\begin{align}
+    \text{NSR}^2 = \frac{N_0^2 + C}{C^2}.
+\end{align}
+If we define $C=C_5$ when $\text{NSR}= 1/5$, then we can solve for $N_0$ and write
+\begin{align}
+    \text{NSR}^2 = \frac{1}{C_5} \left( \frac{C_5}{C} \right) + \left[ \left( \frac{1}{5} \right)^2 - \frac{1}{C_5} \right] \left( \frac{C_5}{C} \right)^2.
+\end{align}
+Defining $x = C_5/C = 10^{(m-m_5)/2.5}$ and $\gamma = 1/5^2 - 1/C_5$, we have
+\begin{align}
+    \text{NSR}^2 = (0.04 - \gamma) \, x + \gamma \, x^2 ~~ (\text{mag}^2),
+\end{align}
+which is Equation 5 from \citet{ivezic2019}.
+Values for the band-dependent parameter $\gamma$ can be found in Table 2 of the same paper.
 
-\citet{ivezic2019} calculates a Gaussian photometric error in magnitude space using Equation 5 from that paper: 
+In the high signal-to-noise (SNR) limit, $\text{NSR} \ll 1$, and we can approximate
 \begin{align}
-    \sigma_\text{rand}^2 = (0.04 - \gamma) x + \gamma x^2 ~~ (\text{mag}^2),
+    \sigma_\text{rand} = 2.5 \log_{10}(1 + \text{NSR}) \approx \text{NSR}.
+    \label{eq:err}
 \end{align}
-where $x \equiv 10 ^ {0.4(m - m_5)}$, $m_5$ is the 5$\sigma$ depth for the band, and $\gamma$ is a band-dependent parameter listed in Table 2 of the same paper.
-This formula is based on the approximation
-\begin{align}
-    \sigma_\text{rand} = 2.5 \log_{10} \left(1 + \frac{N}{S} \right) \approx \frac{N}{S},
-\end{align}
-where $S$ and $N$ are the flux signal and noise, respectively.
-This approximation is valid in the high signal-to-noise regime.
+This latter approximation is made by \citet{ivezic2019}, and errors are assumed to be Gaussian in magnitude space.
+In contrast, we use the exact form of Equation \ref{eq:err}, and model errors as Gaussian in flux space.
+Note that after the photometric errors are applied, the error is re-calculated from the ``observed'' flux, and this new error is reported as the estimated photometric error.
+If the original photometric error were reported, it would provide a deterministic link to the original flux.
 
-To generalize this model to the low signal-to-noise regime, we abandon this latter approximation.
-For each magnitude, $m$, we calculate the corresponding flux, $S = 10^{-m/2.5}$, and the Gaussian flux noise,
-\begin{align}
-    N = S \, \sqrt{(0.04 - \gamma) x + \gamma x^2}, \label{eq:noise}.
-\end{align}
-For very bright galaxies, we impose a systematic floor corresponding to an error of 0.005 mags.
-We then sample an observed flux, $S_\text{obs} \sim \mathcal{N}(S, N)$, and calculate the observed magnitude, $m_\text{obs} = -2.5 \log_{10} S_\text{obs}$.
+We have implemented this error model, along with several other extensions to it, in the Python package PhotErr, which is available on the Python Package Index\footnote{\url{https://pypi.org/project/photerr/}} (PyPI), and Github\footnote{\url{https://github.com/jfcrenshaw/photerr}}.
+The extensions include different methods for handling non-detections, methods for modeling errors of extended objects \citep{vandenbusch2020,kuijken2019}, and error models for the Roman and Euclid space telescopes \citep{roman,euclid,graham2020}, however, these extensions are not used in this paper.
 
-For the reported photometric error, we do not use $N$, as this provides a deterministic link to the true magnitude via Equation \ref{eq:noise}.
-Instead, we apply Equation \ref{eq:noise} again, this time using the observed magnitude instead of the true magnitude, yielding the estimated noise, $N_\text{obs}$.
-Finally, we report the photometric error in magnitudes:
-\begin{align}
-    \sigma_m = 2.5 \log_{10} \left(1 + \frac{N_\text{obs}}{S_\text{obs}} \right).
-\end{align}
 
 
 \bibliography{bib.bib}

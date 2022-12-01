@@ -29,12 +29,13 @@ fig, (ax1, ax2) = plt.subplots(
 )
 
 # plot the true redshift
-z = test_set["redshift"].iloc[11]
+idx = 10
+z = test_set["redshift"].iloc[idx]
 ax1.axvline(z, c="C3", ls="--", label="True redshift")
 
 # plot the posteriors
-ax1.plot(grid, pdfs0[11], c="k", label="Posterior with all bands")
-ax1.plot(grid, pdfs1[11], c="C1", label="Posterior with $u$ marginalized")
+ax1.plot(grid, pdfs0[idx], c="k", label="Posterior with all bands")
+ax1.plot(grid, pdfs1[idx], c="C1", label="Posterior with $u$ marginalized")
 
 # set the x label and limits, and remove the yticks
 ax1.set(xlabel="redshift", xlim=(0, 3), yticks=[])
