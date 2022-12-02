@@ -19,7 +19,14 @@
 \newcommand{\pu}{p^{}_{U}}
 \newcommand{\R}{\mathbb{R}}
 
-\shorttitle{Modeling Galaxy Catalogues with Normalizing Flows}
+% aliases for the DC2 PZ paper
+\defcitealias{schmidt2020}{Schmidt \& Malz et al.}
+\newcommand{\citePZp}{(\citetalias{schmidt2020} \citeyear{schmidt2020})\xspace}
+\newcommand{\citePZt}{\citetalias{schmidt2020} (\citeyear{schmidt2020})\xspace}
+\newcommand{\citePZa}{\citetalias{schmidt2020} \citeyear{schmidt2020}\xspace}
+
+
+\shorttitle{Galaxy Catalogues with Normalizing Flows}
 \shortauthors{Crenshaw et al.}
 
 % Begin!
@@ -115,7 +122,7 @@ We conclude in Section \ref{sec:conclusion}.
 \end{figure*}
 
 Normalizing flows model complex, high-dimensional probability distributions by learning a mapping from the data distribution to a tractable latent distribution\footnote{Some of the machine learning literature defines the mapping in the opposite direction.}.
-Often the latent distribution is a standard Normal distribution, and so the mapping ``normalizes'' the data, hence the name ``noramlizing flow''.
+Often the latent distribution is a standard Normal distribution, and so the mapping ``normalizes'' the data, hence the name ``normalizing flow''.
 This mapping allows us to sample and evaluate densities using the latent distribution, rather than the unknown data distribution.
 
 Assume we have a differentiable function $f$ that maps samples $x$ from the data distribution $\px$ onto samples $u$ from the latent distribution $\pu$.
@@ -127,7 +134,7 @@ Using the change of variables formula, we can evaluate the probability density o
 where $\nabla f(x)$ is the Jacobian of $f$ evaluated at $x$.
 In words, computing the density $\px(x)$ is accomplished by mapping $x$ to the latent distribution, calculating its density there, and multiplying by the associated Jacobian determinant, which accounts for how the function $f$ distorts volume elements of the space.
 
-If we further assume that is invertible, we can sample from the data distribution by appling $f^{-1}$ to samples from the latent distribution:
+If we further assume that $f$ is invertible, we can sample from the data distribution by appling $f^{-1}$ to samples from the latent distribution:
 \begin{align}
     x = f^{-1}(u) \quad \text{where} \quad u \sim \pu.
 \end{align}
@@ -138,7 +145,7 @@ The data points are colored by quadrant to visualize their image under $f$.
 The following sections discuss how to build a normalizing flow to model data with various features.
 Section \ref{sec:bijections} discusses the bijection $f$ and introduces the building blocks from which our bijections will be built;
 Section \ref{sec:latent} discusses how to choose an appropriate latent distribution for your data;
-Section \ref{sec:conditional} describe how to condition a normalizing flow on some conditional variables;
+Section \ref{sec:conditional} describes how to build a flow that models a conditional distribution;
 Section \ref{sec:periodic} explains how to model data with periodic topology;
 finally Section \ref{sec:discrete} explains how to model data with discrete variables.
 
@@ -146,7 +153,7 @@ finally Section \ref{sec:discrete} explains how to model data with discrete vari
 \subsection{Designing a bijection}
 \label{sec:bijections}
 
-The bijection of a normalizing flow must be powerful enough to model complex relationships in data, while simultaneously possessing an efficiently computable Jacobian determinant.
+The bijection of a normalizing flow must be powerful enough to model complex relationships in data, while remaining invertible and simultaneously possessing an efficiently computable Jacobian determinant.
 This latter constraint is the primary difficulty in designing a normalizing flow.
 The most popular strategy for achieving these requirements is to exploit the fact that a composition of bijections is also bijective.
 By chaining together multiple less-expressive bijections whose Jacobians are efficiently computable, a composite bijections can be constructed that meets our requirements:
@@ -165,22 +172,28 @@ For this reason, we will focus on Rational-Quadratic Rolling Spline Couplings (R
 \begin{figure}
     \centering
     \begin{tikzpicture}[thick, outer sep=0]
-        \node [draw, rectangle, minimum height=2cm, minimum width=1.2cm, fill=blue!20] (1) {$x^{}_{1:d}$};
-        \node [draw, rectangle, minimum height=2cm, minimum width=1.2cm, fill=red!20, below = 0 of 1] (2) {$x^{}_{d+1:D}$};
-        \node [draw, circle, minimum size=8mm, fill=gray!20, right = 2cm of 1] (3) {$=$};
-        \node [draw, circle, minimum size=8mm, fill=gray!20, right = 2cm of 2] (4) {$g$};
-        \node [draw, rectangle, minimum height=2cm, minimum width=1.2cm, fill=blue!20, right = 1.5cm of 3] (5) {$y^{}_{1:d}$};
-        \node [draw, rectangle, minimum height=2cm, minimum width=1.2cm, fill=red!20, below = 0 of 5] (6) {$y^{}_{d+1:D}$};
-        \draw[->] (1) -- (3);
-        \draw[->] (2) -- (4);
-        \draw[->] (3) -- (5);
-        \draw[->] (4) -- (6);
-        \draw[->] (1) -- (4) node [midway, draw, circle, fill=white, minimum size=8mm, fill=gray!20] {$m$};
+        % blue boxes
+        \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=blue!20] (1) {$x^{}_{1:d}$};
+        \node [draw, circle, minimum size=8mm, fill=gray!20, right = 2cm of 1] (2) {$=$};
+        \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=blue!20, right = 1.5cm of 2] (3) {$y^{}_{1:d}$};
+        \draw[->] (1) -- (2);
+        \draw[->] (2) -- (3);
+        
+        % red boxes
+        \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=red!20, below = 0 of 1] (4) {$x^{}_{d+1:D}$};
+        \node [draw, circle, minimum size=8mm, fill=gray!20, right = 2cm of 4] (5) {$g$};
+        \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=red!20, below = 0 of 3] (6) {$y^{}_{d+1:D}$};
+        \draw[->] (4) -- (5);
+        \draw[->] (5) -- (6);
+
+        % coupling function
+        \draw[->] (1) -- (5) node [midway, draw, circle, fill=white, minimum size=8mm, fill=gray!20] (7) {$m$};
+        
     \end{tikzpicture}
     \caption{
-    Diagram of a coupling layer.
-    The first partition, $x^{}_{1:d}$, is passed through the layer unchanged.
-    The second partition, $x^{}_{d+1:D}$, is transformed by the coupling law $g$, which is parameterized by the coupling function $m$ applied to the first partition.
+        Diagram of a coupling layer.
+        The first partition, $x^{}_{1:d}$, is passed through the layer unchanged.
+        The second partition, $x^{}_{d+1:D}$, is transformed by the coupling law $g$, which is parameterized by the coupling function $m$ applied to the first partition.
     }
     \label{fig:coupling}
 \end{figure}
@@ -218,7 +231,7 @@ Furthermore, the inverse can be calculated as
 \end{align}
 Notice that neither inverting a coupling layer nor calculating the Jacobian determinant requires inverting or taking derivatives of the coupling function $m$, which can thus be arbitrarily complex.
 
-The obvious limitation of a coupling later is that only a subset of the data variables are transformed.
+The obvious limitation of a coupling layer is that only a subset of the data dimensions are transformed.
 This is overcome by stacking multiple coupling layers in succession, and switching which variables belong to which partition.
 In practice, this is achieved by interspersing coupling layers with bijections that shuffle the dimensions of $x$.
 These shuffling bijections are trivially inverted and have a Jacobian determinant of one.
@@ -241,9 +254,9 @@ A Rolling layer shifts the dimensions of $x$ by one place:
 \end{align}
 In other words, RQ-RSCs individually transform each of the $D$ dimensions of $x$ as a function of the other $D-1$ dimensions.
 In the limit of high spline resolution (i.e. $K \to \infty$), RQ-RSCs can model any differentiable, monotonic function on $[-B, B]^D$ and can thus model arbitrarily complex distributions in this region.
-In practice, we find very good performance for diverse data sets with much smaller $K$.
+In practice, we find very good performance for diverse data sets with $K=16$.
 
-Note that you can also specify a different value of $K$ for each of the $D$ spline layers in order to individually control the resolution of each dimension.
+Note you can specify a different value of $K$ for each of the $D$ spline layers in order to individually control the resolution of each dimension.
 
 \subsubsection{Data processing bijections}
 \label{sec:data-processing}
@@ -253,11 +266,11 @@ We name these \emph{data processing bijections}.
 
 For example, RQ-RSCs (and the RQ-NSCs on which they are based) are defined on the domain [-B, B], and thus will not transform samples outside this range.
 It is therefore useful to define a \emph{Shift Bounds} bijection, which shifts the original range of each dimension to match the domain of the splines.
-Note that this shift must be set at training time, with the assumption that future test data will lie within the same bounds\footnote{This bijection may be poorly suited to data with large outliers. In that case, more care should be taken in designing a bijection that maps the data onto the range of the splines.}.
+Note this shift must be set at training time, with the assumption that future test data will lie within the same bounds\footnote{While this sounds quite restrictive, neural networks are typically pretty bad at extrapolating beyond the bounds of the training set anyway.}.
 You can choose a range wider than that covered by the training set if you wish to allow the flow to sample outside the range of the training set
 
 For an example of building an application-specific data processing bijection, see the \emph{Color Transform} bijection defined in Section \ref{sec:fwd-model}, which maps galaxy magnitudes to galaxy colors.
-See section \ref{sec:discrete} for data processing bijections, which enable the flow to model discrete data.
+See section \ref{sec:discrete} for data processing bijections that enable modeling of discrete data.
 
 Instead of using these data processing bijections, you can of course manually pre-process the data before evaluating densities and post-process samples drawn from the normalizing flow.
 However, by building pre- and post-processing directly into the bijection, you remove these extra steps from the workflow.
@@ -275,7 +288,7 @@ Sampling from a latent distribution with support outside this range will therefo
 One can apply a transformation to the latent samples before they are fed into the RQ-RSC to ensure that they lie within the support of the splines, but it is simpler to use a compact latent distribution whose support matches that of the spline layers.
 A simple choice would be the uniform distribution over [-B, B].
 
-Additionally, as no bijector is perfect, the structure of the latent distribution will not be completely erased in the translation from latent to data distribution.
+Additionally, as no bijection is perfect, the structure of the latent distribution will not be completely erased in the translation from latent to data distribution.
 Thus, the latent distribution can be viewed as a prior or inductive bias on samples from the data distribution \citep{jaini2020}.
 It is therefore advantageous to select a latent distribution whose features match some of the structure in the data.
 
@@ -299,13 +312,48 @@ This may even be desired if different dimensions of the data have different stru
 \subsection{Conditional flows}
 \label{sec:conditional}
 
-The bijectors and latent distributions discussed above can be easily adapted to directly learn conditional probability distributions:
-you only need to make the replacement $f(x) \to f(x;y)$, where $y$ is a vector of conditions \citep{winkler2019}.
-In practice, as the bijection $f$ is parameterized by a neural network, this can be simply achieved by appending the vector $y$ to the neural network's input.
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[thick, outer sep=0]
+        % blue boxes
+        \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=blue!20] (1) {$x^{}_{1:d}$};
+        \node [draw, circle, minimum size=8mm, fill=gray!20, right = 2cm of 1] (2) {$=$};
+        \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=blue!20, right = 1.5cm of 2] (3) {$y^{}_{1:d}$};
+        \draw[->] (1) -- (2);
+        \draw[->] (2) -- (3);
+        
+        % red boxes
+        \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=red!20, below = 0 of 1] (4) {$x^{}_{d+1:D}$};
+        \node [draw, circle, minimum size=8mm, fill=gray!20, right = 2cm of 4] (5) {$g$};
+        \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=red!20, below = 0 of 3] (6) {$y^{}_{d+1:D}$};
+        \draw[->] (4) -- (5);
+        \draw[->] (5) -- (6);
 
-While $p(x|y)$ is technically encoded within $p(x,y)$, which can be learned with a regular normalizing flow, directly modeling $p(x|y)$ with a conditional flow has a few benefits.
+        % coupling function
+        \draw[->] (1) -- (5) node [midway, draw, circle, fill=white, minimum size=8mm, fill=gray!20] (7) {$m$};
+
+        % conditional variables
+        \node [draw, rectangle, minimum height=1.28cm, minimum width=1.28cm, fill=green!20, above = 0.25 of 1] (8) {$z^{}_{1:L}$};
+        \draw[-] (8.south east) -- (7.north west);
+        
+    \end{tikzpicture}
+    \caption{
+        Diagram of a \emph{conditional} coupling layer.
+        The first partition, $x^{}_{1:d}$, is passed through the layer unchanged.
+        The second partition, $x^{}_{d+1:D}$, is transformed by the coupling law $g$, which is parameterized by the coupling function $m$ applied to the first partition \emph{and} the conditional variables $z^{}_{1:L}$.
+        The conditional variables are \emph{never} altered by the flow.
+    }
+    \label{fig:conditional-coupling}
+\end{figure}
+
+The bijections and latent distributions discussed above can be easily adapted to directly learn conditional probability distributions:
+you only need to make the replacement $f(x) \to f(x;z)$, where $z$ is a vector of conditions \citep{winkler2019}.
+This is illustrated in Figure \ref{fig:conditional-coupling}, which is a modification of Figure \ref{fig:coupling} to include the input of conditional variables to the coupling function $m$.
+In practice, since $m$ is usually a neural network, this amounts to just appending the conditions $z$ to the inputs of the neural network.
+
+While $p(x|z)$ is technically encoded within $p(x,z)$, which can be learned with a regular normalizing flow, directly modeling $p(x|z)$ with a conditional flow has a few benefits.
 Training is typically faster, since the latent distribution has a smaller number of dimensions.
-You can also draw samples of $x$ at fixed values of the conditions $y$, and you can calculate $p(x|y)$ without having to numerically calculate and divide by $p(y)$, which can be computationally expensive.
+You can also draw samples of $x$ at fixed values of the conditions $z$, and you can calculate $p(x|z)$ without having to numerically calculate and divide by $p(z)$, which can be computationally expensive.
 
 \subsection{Flows with periodic topology}
 \label{sec:periodic}
@@ -360,7 +408,7 @@ We can model the joint distribution of periodic and non-periodic variables with 
 \label{sec:discrete}
 
 In addition to the continuous variables described above, normalizing flows can also be used to model discrete variables.
-This can be achieved by ``dequantizing'' the discrete dimensions of the data, which can then be mapped onto continuous latent distributions using regular continuous bijectors.
+This can be achieved by ``dequantizing'' the discrete dimensions of the data, which can then be mapped onto continuous latent distributions using regular continuous bijections.
 Dequantization consists of adding some kind of continuous noise to the discrete dimensions, transforming them into continuous dimensions.
 When sampling from the flow, you simply do the opposite, and ``quantize'' the discrete dimensions after applying all of the regular bijections, mapping the noisy, continuous variables onto their discrete counterparts.
 
@@ -369,7 +417,7 @@ The corresponding quantization applied while sampling from the flow consists of 
 More sophisticated dequantization schemes use variational inference or even another normalizing flow to determine the noise distributions, which improves results by smoothing the discontinuities between neighboring discrete values.
 See \citet{ho2019} \citet{hoogeboom2020} for more details.
 
-While the dequantizers are not technically bijections, they can be treated as data processing bijections and be chained together with the other bijectors in your normalizing flow.
+While the dequantizers are not technically bijections, they can be treated as data processing bijections and be chained together with the other bijections in your normalizing flow.
 
 
 \section{PZFlow}
@@ -377,11 +425,11 @@ While the dequantizers are not technically bijections, they can be treated as da
 
 PZFlow is a Python package for building normalizing flows, with a focus on easy high-performance modeling of high-dimensional tabular data.
 Data is handled in Pandas DataFrames \citep{pandas}, while the normalizing flows are implemented in Jax \citep{jax}, which allows for efficient, parallelizable, GPU-enabled calculations for very large data sets.
-The code is easily installable for the Python Package Index\footnote{\url{https://pypi.org/project/pzflow/}} (PyPI) and is hosted on Github,\footnote{\url{https://github.com/jfcrenshaw/pzflow}}.
+The code is easily installable from the Python Package Index\footnote{\url{https://pypi.org/project/pzflow/}} (PyPI) and is hosted on Github,\footnote{\url{https://github.com/jfcrenshaw/pzflow}}.
 The documentation\footnote{\url{https://jfcrenshaw.github.io/pzflow/}} includes tutorial notebooks demonstrating the features mentioned in this paper on different example problems.
 
 The rest of this paper will demonstrate using PZFlow for the statistical modeling of galaxy catalogs.
-Section \ref{sec:galaxy-catalog} uses PZFlow to forward model a photometric catalog, including spectroscopic redshifts, Rubin photometry, ``true'' photo-z posteriors, ellipticities, and sizes.
+Section \ref{sec:galaxy-catalog} uses PZFlow to forward model a galaxy catalog, including photometry, spectroscopic redshifts (spec-z's), \emph{true} photo-z posteriors, ellipticities, and sizes.
 Section \ref{sec:photo-z} uses PZFlow for photo-z estimation, demonstrating the power of PZFlow as a density estimator, including numerous useful features for photo-z estimation.
 
 In addition to the examples in this paper, PZFlow has already being used in various other projects:
@@ -395,12 +443,12 @@ In addition to the examples in this paper, PZFlow has already being used in vari
 \section{Forward Modeling a Galaxy Catalog}
 \label{sec:galaxy-catalog}
 
-In this section, we apply PZFlow to forward model a photometric galaxy catalog for the Rubin Observatory.
-The advantage of using a catalog generated from a normalizing flow is that we have direct access to the exact distribution from which the data is drawn, enabling us to calculate truth values for derived statistical products, such as the true photo-z redshift posterior for each galaxy.
+In this section, we use PZFlow to forward model a photometric galaxy catalog for the Vera Rubin Observatory's Legacy Survey of Space and Time (LSST; \citealt{ivezic2019}).
+The advantage of using a catalog generated from a normalizing flow is that we have direct access to the exact distribution from which the data is drawn, enabling us to calculate true values for derived statistical products, such as the \emph{true} photo-z redshift posterior for each galaxy.
 
 In Section \ref{sec:fwd-model} we construct a normalizing flow to model the galaxy redshifts and photometry and generate a new simulated catalog.
 In Section \ref{sec:true-posteriors}, we calculate true redshift posteriors for the new catalog.
-In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add additional properties to the catalog.
+In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add additional galaxy properties to the catalog.
 
 \subsection{Forward modeling redshifts and photometry}
 \label{sec:fwd-model}
@@ -411,7 +459,7 @@ In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add ad
         \includegraphics{figures/main_galaxy_corner.pdf}
         \caption{
             Distribution of the CosmoDC2 test set compared to the distribution learned by PZFlow.
-            The close overlap of every pair-wise distribution demonstrates that PZFlow was able to learn the structure present in CosmoDC2 with high fidelity.
+            The close overlap of every pair-wise distribution demonstrates that PZFlow has learned the distribution in CosmoDC2 with high fidelity.
         }
         \label{fig:main-corner}
     \end{centering}
@@ -430,19 +478,19 @@ In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add ad
     \end{centering}
 \end{figure*}
 
-To create a generative model of galaxy redshifts and photometry, we use the true redshifts and $ugrizy$ magnitudes from the DESC CosmoDC2 simulation \citep{dc2, cosmodc2}.
+To create a generative model of galaxy redshifts and photometry, we use the true redshifts and $ugrizy$ magnitudes from the CosmoDC2 simulation \citep{dc2, cosmodc2} of the LSST Dark Energy Science Collaboration (DESC).
 We selected all galaxies from CosmoDC2 with at most one band beyond the LSST 10-year 5-sigma point source depths.
-Of these, we selected $10^6$ galaxies and split them intro training and test sets consisting of 80\% and 20\% of the galaxies, respectively.
+Of these, we randomly selected $10^6$ galaxies and split them intro training and test sets consisting of 80\% and 20\% of the galaxies, respectively.
 
-For the latent distribution we use a 7 dimensional Uniform distribution over the range $[-5, 5]$.
+For the latent distribution we use a 7 dimensional Uniform distribution over the range $[-5, 5]$\footnote{The choice of 5 was arbitrary. Any other positive value would work just as well.}.
 To map the data onto the latent distribution, we use the following bijection:
 \begin{align}
     f = \text{RQ-RSC} \circ \text{Shift Bounds} \circ \text{Color Transform}.
 \end{align}
 We will explain each layer of the bijection in the order they are applied to the input data.
 
-The first layer of the bijection is a Color Transform.
-This bijection converts galaxy magnitudes to colors, but keeps the $i$ band magnitude as a proxy for the apparent luminosity:
+The first layer of the bijection is the Color Transform, a data processing bijection designed specifically for this task.
+The Color Transform converts galaxy magnitudes to colors, but keeps the $i$ band magnitude as a proxy for the apparent luminosity:
 \begin{multline}
     \text{Color Transform} : (\text{redshift},\, u,\, g,\, r,\, i,\, z,\, y) \to \\
     (\text{redshift},\, i,\, u-g,\, g-r,\, r-i,\, i-z,\, z-y).
@@ -455,11 +503,11 @@ Note that since Shift Bounds is on the ``other side'' of the Color Transform, we
 The final layer is an RQ-RSC, described in detail in Section \ref{sec:rq-rsc}.
 This layer performs the heavy lifting of transforming the data distribution into the uniform latent distribution.
 We use $D=7$ layers to transform all 7 dimensions of our data, and set $B=5$ to match the support of the latent distribution.
-We use the coupling function (with two hidden layers of 128 neurons) described in \citet{durkan2019}.
+We use the coupling function (a feedforward neural network with two hidden layers of 128 neurons) described in \citet{durkan2019}.
 We use $K=16$ spline knots.
 
 After training the flow (see Appendix \ref{app:training-details}), we assess the results by drawing $10^4$ galaxies from the trained flow, and plotting their distribution against  $10^4$ galaxies from the test set (Figure \ref{fig:main-corner}).
-We see that the normalizing flow has done an excellent job of reproducing the distribution of DESC DC2, without any unusual artifacts or outliers.
+We see the normalizing flow has done an excellent job of reproducing the distribution of galaxies in CosmoDC2, without any unusual artifacts or outliers.
 In addition, Figure \ref{fig:smooth-color-dist} compares the distribution of galaxy $r-i$ vs redshift.
 The CosmoDC2 simulation is known to exhibit discrete tracks in this space at high redshift, due to the discrete number of SED templates used during simulation.
 These tracks are visible in the left panel.
@@ -468,8 +516,10 @@ The right panel shows that PZFlow smooths over this discreteness, resulting in a
 We note that these results were obtained without any extensive hyperparameter search, and that very similar (slightly worse results) are obtained without the \texttt{ColorTransform} bijection, demonstrating the flexibility of the method to adapt to unseen data sets.
 
 With this normalizing flow, we have an efficient CosmoDC2 emulator that produces a smooth distribution of realistic galaxies up to high-redshifts.
-
-To simulate photometric errors, we use the LSST error model of \citet{ivezic2019}, except without the high-SNR assumptions made there (see Appendix \ref{app:error-model} for details).
+We use this emulator to generate a catalog with $10^4$ galaxies.
+We add photometric errors using the LSST error model of our PhotErr package (see Appendix \ref{app:error-model}).
+Importantly, since we have access to the probability distribution from which the galaxies were generated, we can calculate \emph{true} redshift posteriors for each galaxy.
+This is the subject of the next section.
 
 \subsection{Calculating true posteriors}
 \label{sec:true-posteriors}
@@ -485,6 +535,7 @@ In addition to calculating the true posterior, $p(z|m)$, we can calculate a true
 where $\sigma_m$ is the vector of photometric errors returned by the error model, and $\hat{m}$ are possible noisy observations of the true magnitudes, $m$.
 We can evaluate this integral numerically by sampling $\hat{m} \sim p(\hat{m}|m, \sigma_m)$, evaluating $p(z, \hat{m})$ on a redshift grid, and normalizing to obtain $p(z|\hat{m})$.
 Averaging $p(z|\hat{m})$ over the samples $\hat{m}$ yields $p(z|m, \sigma_m)$.
+This is the ``best case scenario'' redshift posterior that photo-z estimators hope to estimate.
 
 We can also marginalize over any missing bands, $n$:
 \begin{align}
@@ -493,7 +544,7 @@ We can also marginalize over any missing bands, $n$:
 which can be calculated by evaluating $p(z, n, \hat{m})$ on a grid of $z$ and $n$, summing over $n$ to yield $p(z, \hat{m})$, and normalizing with respect to redshift to yield $p(z|\hat{m})$.
 You can once again average over $\hat{m}$ samples to convolve the photometric errors.
 You may wish to marginalize over all values of $n$ if the galaxy was not observed in that band.
-This might occur, for example, if you include photometry from Euclid, which will not have complete coverage of the LSST catalog \citep{euclid}.
+This might occur, for example, if you include photometry from the Euclid Space Telescope \citep{euclid}, which will not have complete coverage of the LSST catalog.
 You may also wish to marginalize over all values beyond a limiting magnitude if the galaxy was observed, but not detected in that band.
 This might occur, for example, in the low wavelength bands of Lyman dropout galaxies observed by LSST.
 
@@ -512,9 +563,9 @@ This might occur, for example, in the low wavelength bands of Lyman dropout gala
     \end{centering}
 \end{figure}
 
-Figure \ref{fig:posteriors} shows a number of redshift posteriors to visualize the effects of error convolution and band marginalization.
+To visualize the impacts of error convolution and band marginalization, Figure \ref{fig:posteriors} shows a number of redshift posteriors for a single example galaxy.
 The black posterior is calculated using the true galaxy magnitudes, while the blue posteriors is calculated after adding photometric errors.
-Calculating the posterior using the noisy photometry results in a posterior with very little support over the true redshift.
+Calculating the posterior using the noisy photometry results in a biased posterior.
 The orange posterior has had the photometric errors convolved as in Equation \ref{eq:err-conv}.
 Convolving the errors broadens the posterior so that the true redshift lies within the support of the posterior.
 This broadening reflects the increased uncertainty due to the photometric errors.
@@ -522,8 +573,10 @@ Finally, the green posterior has had the $u$ band marginalized.
 This posterior favors lower redshifts, although has a high-redshift tail that covers the support of the previous posteriors. 
 This demonstrates how the $u$ band helps constrain the redshift, and the loss of this information leads to greater uncertainty.
 
-Calculating these posteriors enables direct comparison of true redshift posteriors (consistent with the photometric errors and missing bands) with the redshift posteriors estimated by photo-z estimators.
-This allows you to test photo-z estimation on a posterior-per-galaxy basis, which will alleviate the photo-z validation problems discovered by \citet{schmidt2020} and will be investigated in future DESC papers.
+Calculating these posteriors enables direct comparison of true redshift posteriors (consistent with photometric errors and missing bands) with the redshift posteriors estimated by photo-z estimators.
+This is important, as modern cosmology analyses are beginning to rely on full redshift posteriors \citep{newman2022}.
+\citePZt showed that popular metrics for evaluating photo-z estimators using ensembles of photo-z posteriors can be misleading, and are not well suited to our science.
+PZFlow catalogs with \emph{true} redshift posteriors provide a path forward by enabling the evaluation of photo-z estimators on a per-posterior basis.
 
 
 \subsection{Additional properties with conditional flows}
@@ -534,8 +587,8 @@ This allows you to test photo-z estimation on a posterior-per-galaxy basis, whic
     \begin{centering}
         \includegraphics{figures/conditional_galaxy_corner.pdf}
         \caption{
-            Distribution of the ellipticities and sizes of the galaxies in the CosmoDC2 test set compared to the distribution learned by PZFlow.
-            The close overlap of every pair-wise distribution demonstrates that PZFlow was able to learn the structure present in CosmoDC2 with high fidelity.
+            Conditional distributions of the ellipticity and size of the galaxies in the CosmoDC2 test set compared to the distribution learned by PZFlow.
+            The close overlap of every pair-wise distribution demonstrates that PZFlow has learned the distribution in CosmoDC2 with high fidelity.
         }
         \label{fig:conditional-corner}
     \end{centering}
@@ -547,19 +600,19 @@ However, we did not want the true redshift posteriors to be conditioned on these
 Therefore, we will build a second flow that models these additional values conditioned on the galaxy redshift and magnitudes.
 Note that while we have only chosen to model these additional two properties, any other values you desire can be similarly modeled.
 
-For the latent distribution, we once more use a Uniform distribution over the range $[-5, 5]$.
+For the latent distribution, we again use a Uniform distribution over the range $[-5, 5]$.
 For the bijection, we use
 \begin{align}
     \begin{split}
         f =& ~ \text{RQ-RSC} \circ \text{Shift Bounds}. \\
     \end{split}
 \end{align}
-The RQ-RSC acts on the two dimensional space of size and ellipticity, but also takes the galaxy redshift and magnitudes as inputs.
+The RQ-RSC acts on the two dimensional space of size and ellipticity, but also takes the galaxy redshift and magnitudes as inputs (see Figure \ref{fig:conditional-coupling}).
 The redshifts and magnitudes are transformed to have zero mean and unit variance before being input to the neural network\footnote{These variables are standard scaled instead of mapped onto the domain [-5, 5], because the neural network that parameterizes the splines has no limit on inputs, unlike the splines themselves, which are limited to the range [-5, 5].} that parameterizes the splines.
 Aside from the change in inputs, the RQ-RSC has the same settings as listed for the previous normalizing flow.
 
-After training the flow (see Appendix \ref{app:training-details}), we sample a size and ellipticity for each galaxy in the PZFlow catalog created in the previous section (using the true magnitudes), and plot the distribution of these features against the distribution in the test set (Figure \ref{fig:conditional-corner}).
-Once again, we see that the normalizing flow does a good job of emulating the CosmoDC2 distribution.
+After training the flow (see Appendix \ref{app:training-details}), we sample a size and ellipticity for each galaxy in the PZFlow catalog created in the previous section (conditioned on the true magnitudes), and plot the distribution of these features against the distribution in the test set (Figure \ref{fig:conditional-corner}).
+Once again, we see the normalizing flow does a good job of emulating the CosmoDC2 galaxy distribution.
 
 The final simulated catalog consists of $10^4$ galaxies, each with a redshift, $ugrizy$ magnitudes including photometric errors, a true photo-z posterior consistent with the photometric errors, a size, and an ellipticity.
 This small catalog was generated for visualization purposes, but the normalizing flows can be used to generate catalogs of arbitrarily large size.
@@ -578,7 +631,7 @@ This small catalog was generated for visualization purposes, but the normalizing
             The dashed black line is the mean of these individual posteriors and is the value used by the ensemble.
             The vertical gray line labeled ``Truth'' denotes the true redshift of the galaxy.
             Note these galaxies were specifically chosen for their broad, multimodal posteriors.
-            The posteriors of most galaxies are unimodal with sharp peaks.
+            The posteriors of most galaxies are sharp and unimodal.
         }
         \label{fig:ensemble-posteriors}
     \end{centering}
@@ -586,8 +639,8 @@ This small catalog was generated for visualization purposes, but the normalizing
 
 In addition to forward modeling, normalizing flows are powerful and flexible models for density estimation.
 This makes them useful tools for estimating posterior distributions for galaxy properties, conditioned on observed features of the galaxy.
-A common example of this in cosmology is photometric redshift estimation, in which you try to estimate the redshift of a galaxy using its magnitude in several photometric bands.
-In this section, we will demonstrate this application to show how normalizing flows can be used for density estimation.
+A common example of this in cosmology is photometric redshift estimation, in which you estimate the redshift of a galaxy using its magnitude in several photometric bands.
+In this section, we use PZFlow as a photo-z estimator to demonstrate using normalizing flows for density estimation.
 
 \subsection{Training an Ensemble for photo-z estimation}
 
@@ -597,46 +650,46 @@ However, when estimating redshifts, we do not simply want a realistic model, but
 When training deep learning models, the huge parameter space contains many different solutions, corresponding to different local minima in the parameter space.
 In the forward modeling application, we were content with finding a good local minimum, but in this application, we want to marginalize over the different potential models.
 
-A full marginalization over the model parameters would be too computationally expensive, so instead we opt for an ensemble of normalizing flows.
-In other words, we will train multiple normalizing flows under identical conditions, just with different random initializations of the model parameters.
-This will allow the optimization algorithm to explore different basins of attraction in the parameter space, allowing us to marginalize over different potential models.
-In the machine learning literature, this is known as a Deep Ensemble \citep{lakshminarayanan2017}, a popular method for approximate bayesian marginalization \citep{wilson2020,fort2020}.
+A full marginalization over the model parameters would be too computationally expensive, so instead we approximate this marginalization using an ensemble of normalizing flows.
+In other words, we train multiple normalizing flows under identical conditions, using different random initializations of the model parameters.
+This allows the optimization algorithm to explore different basins of attraction in the parameter space.
+In the machine learning literature, this is known as a Deep Ensemble \citep{lakshminarayanan2017}, and is a popular method for approximate bayesian marginalization \citep{wilson2020,fort2020}.
 
-We train an ensemble of 4 normalizing flows, each with the same architecture and training schedule as the flow described in Section \ref{sec:galaxy-catalog}.
-PZFlow makes this easy to do automatically, by simply swapping \texttt{FlowEnsemble} for \texttt{Flow} in the code.
+We train an ensemble of 4 normalizing flows, each with the same architecture and training schedule as the regular flow described in Section \ref{sec:galaxy-catalog}.
+With PZFlow, this is as simple as swapping \texttt{FlowEnsemble} for \texttt{Flow} in the code.
 
 For the training set, we use 100,000 galaxies from the catalog created in Section \ref{sec:galaxy-catalog}.
 Each galaxy in the training set has a true redshift and observed magnitudes in the $ugrizy$ bands, with corresponding photometric errors.
-To account for the photometric error, at the start of each training epoch, we resample the training set from the photometric error distribution.
-In other words, each epoch, we resample
+To account for the photometric error, at the start of each training epoch, we resample the training set from the photometric error distributions.
+In other words, each epoch, for each galaxy, we sample
 \begin{align}
     m \sim p(\hat{m}, \sigma_m),
 \end{align}
 where $\hat{m}$ are the observed magnitudes with photometric errors $\sigma_m$, and $p(\hat{m}, \sigma_m)$ is a Gaussian in flux space.
 This allows our ensemble of flows to approximate the distribution $p(z, m)$.
-
-The training curves for the flows in the ensemble can be seen in Appendix \ref{app:training-details}.
+For more details on training the ensemble, see Appendix \ref{app:training-details}.
 
 
 \subsection{Estimating posteriors}
 
-Each flow in the ensemble estimates the posterior for each galaxy by marginalizing over the photometric errors:
+For each flow in the ensemble, we estimate $p(z, m)$ by marginalizing over the photometric errors:
 \begin{align}
     p(z| \hat{m}, \sigma_m) \propto \int dm \, p(z, m) \, p(m| \hat{m}, \sigma_m),
 \end{align}
 which is estimated by sampling $m \sim p(\hat{m}, \sigma_m)$ and averaging $p(z, m)$ over these samples.
-We then average the posteriors from each flow in the ensemble.
+We then average the $p(z, m)$ from each flow, and normalize with respect to the redshift grid.
+This provides a redshift posterior for each galaxy.
 
-An example of this for three galaxies can be seen in Figure \ref{fig:ensemble-posteriors}.
+Posteriors for three galaxies can be seen in Figure \ref{fig:ensemble-posteriors}.
 Each flow produces a PDF which may contain slightly different features in each case.
 By averaging over the individual posteriors, we select for features that are common between models, while smoothing over features that are present in only a single model.
-Compare these to the true posteriors.
+\note{Compare these to the true posteriors.}
 
-We can calculate posteriors for galaxies with missing magnitudes by marginalizing over the missing magnitudes.
-This is done by averaging $p(z, m)$ over a grid of values for the missing bands. 
-This might be useful when not every galaxy is observed in every band, in which case you can marginalize over the bands that were not observed.
-Or if a galaxy was observed but not detected in the band, you can marginalize over values for the band that are beyond the limiting magnitude.
-You can also marginalize over bands for which you have a magnitude to understand what information about redshift is included in that band.
+We can calculate posteriors for galaxies with missing magnitudes by marginalizing over the missing magnitudes, as described in Section \ref{sec:true-posteriors}.
+An example is shown in Figure \ref{fig:posterior_marginalized}, which compares a posterior calculated using every LSST band to a posterior with the $u$ band marginalized.
+Sacrificing the information in the $u$ band increases the uncertainty of the redshift inference.
+In this instance, a second potential higher-redshift mode is created.
+Conversely, this demonstrates how the additon of $u$ band information rules out the higher redshift solution for this galaxy.
 
 \begin{figure}[t!]
     \script{photo-z/plot_marginalized_posterior.py}
@@ -652,42 +705,42 @@ You can also marginalize over bands for which you have a magnitude to understand
     \end{centering}
 \end{figure}
 
-Figure \ref{fig:posterior_marginalized} compares posteriors with and without $u$ band information for an example galaxy.
-It is clear how losing the $u$ band information increases the uncertainty in the redshift inference.
-In this instance, a second potential redshift mode is created.
-Conversely, this demonstrates how the addition of $u$ band information rules out the higher redshift solution for this galaxy.
-
 
 \subsection{Photo-z metrics}
 
-In this section, we calculate common photo-z metrics to evaluate how well the ensemble of flows captures the information present in the catalog.
-We calculate each metric for the full catalog and the sub catalog with missing $u$ bands.
-Note that these metrics are optimistic in the sense that the training set is representative of the test set, which is usually not the case when applied to real galaxies.
+In this section, we evaluate the performance of PZFlow using common photo-z metrics.
+Note these metrics are optimistic in the sense that the training set is representative of the test set, which is usually not the case in modern cosmology applications.
 
 The most common metrics for photo-z estimation concern photo-z point estimates, which are a compression of the photo-z posterior to a single redshift estimate.
-We make the common choice of selecting the mode of the posteriors\footnote{The mean redshift is often a poor choice, since photo-z posteriors are generally multimodal, and so the mean value can lie between two modes at a redshift with very small probability density.}.
+We make the common choice of selecting the mode of the posteriors\footnote{The mean redshift is a poor choice, since photo-z posteriors are often multimodal, and so the mean value can lie between two modes at a redshift with very small probability density.}.
 We compute metrics of the quantity $\Delta z = (z_\text{phot} - z_\text{true}) / (1 + z_\text{true})$, where the denominator accounts for naturally greater uncertainties at high redshift.
 
-Figure \ref{fig:binned-metrics} shows the metrics from \citet{descSRD} as a function of true redshift.
-The bias is defined as the median of $\Delta z$; the scatter is defined as $\text{IQR} / 1.349$, where IQR is the interquartile range of $\Delta z$; the outlier fraction is defined as the fraction of galaxies for which $\Delta z$ is greater than three times the $\Delta z$ scatter.
-As a point of comparison, we plot the requirements for LSST cosmology in gray.
+Figure \ref{fig:point-estimates} compares the photo-z point estimates to the true redshifts.
+The point estimates for most galaxies lie along the diagonal, indicating strong performance.
+There are the common photo-z ``wings'', indicating redshifts where important spectral features are transitioning between neighboring photometric bands.
+There is also a small population of high-redshift objects that were mistakenly identified as very low redshift objects.
+This point estimate plot is comparable to other high-performance machine learning photo-z estimators when provided with representative training sets \needscite.
 
-Like many photo-z estimators, our estimator performs well to a redshift of approximately 1.5.
+Figure \ref{fig:binned-metrics} shows the photo-z point estimate metrics from the LSST DESC Science Requirements Document (SRD; \citealt{descSRD}) as a function of true redshift.
+The \emph{bias} is defined as the median of $\Delta z$; the \emph{scatter} is defined as $\text{IQR} / 1.349$, where IQR is the interquartile range of $\Delta z$; the \emph{outlier fraction} is defined as the fraction of galaxies for which $\Delta z$ is greater than three times the scatter.
+The requirements from the SRD are plotted in black to provide a sense of scale.
+
+Like many photo-z estimators, PZFlow performs well to a redshift of approximately 1.5.
 At higher redshifts, our estimator does not meet the bias and scatter requirements, because there is very little training data in this redshift range.
-We note however that for many cosmology application, it is okay for the bias to exceed the required limits, as long as the bias can be well determined via some calibration process \citep{newman2022}.
+We note however that for many cosmology applications, it is okay for the bias to exceed the required limits, as long as the bias can be well determined via some calibration process \citep{newman2022}.
 
 \begin{figure}[t!]
     \script{photo-z/plot_pz_point_estimates.py}
     \begin{centering}
         \includegraphics{figures/pz_point_estimates.pdf}
         \caption{
-            Comparing the photo-z point estimates to the true redshifts in the catalog.
+            Photo-z point estimates (maximum a posteriori) vs true redshift for galaxies in the test set.
         }
         \label{fig:point-estimates}
     \end{centering}
 \end{figure}
 
-Another common metric is the probability integral transform (PIT) (see e.g. \citealt{schmidt2020, dey2022}).
+Another common metric is the probability integral transform (PIT) (see e.g. \citePZa, \citealt{dey2022}).
 The PIT metric is used to determine if posteriors are well calibrated, i.e. if true values fall within X\% confidence intervals X\% of the time.
 The PIT histogram for our estimator is shown in Figure \ref{fig:pit-histogram}.
 Ideally, this histogram would be uniform and match the dashed horizontal line.
@@ -697,14 +750,17 @@ In other words, because normalizing flows are trained by maximizing the likeliho
 As a result, they tend to conservatively spread out their density, in order to avoid missing any modes.
 This results in overly conservative posterior predictions.
 The low values at the edges of the PIT histogram indicate the relative rarity of catastrophic outliers, which is also reflected in the far right panel of Figure \ref{fig:binned-metrics}, where you can see that our estimator meets the requirement on the outlier fraction at all redshifts.
+There is also a slight rightward tilt.
+This indicates a small negative bias, which reflects the intrinsic prior towards smaller redshifts, as this is where the majority of galaxies in the training set lie.
+This negative bias is also visible in the far left panel of Figure \ref{fig:binned-metrics}.
 
 \begin{figure*}[t!]
     \script{photo-z/plot_binned_metrics.py}
     \begin{centering}
         \includegraphics{figures/binned_metrics.pdf}
         \caption{
-            The bias, scatter, and catastrophic outlier fraction of the photo-z point estimates as a function of true galaxy redshift.
-            The dashed black lines represent the science requirements for LSST cosmology as stated in the LSST SRD \citep{descSRD}.
+            The bias, scatter, and outlier fraction of the photo-z point estimates as a function of true galaxy redshift.
+            The dashed black lines represent the requirements for LSST cosmology as stated in the LSST DESC SRD \citep{descSRD}.
             These lines are to provide a sense of scale for these metrics.
             You can see that PZFlow meets the bias and scatter requirements up to redshift $\sim$ 1.5, while meeting the outlier fraction requirements for all redshifts.
             We note that individual redshifts do not actually need to meet the bias requirement as long as the bias can be well calibrated via some other source, e.g. galaxy clustering.
@@ -713,9 +769,9 @@ The low values at the edges of the PIT histogram indicate the relative rarity of
     \end{centering}
 \end{figure*}
 
-The previous metrics analyze photo-z performance for point estimates, which are insufficient for modern cosmology \citep{newman2022}, and for ensembles of posteriors, which is often not a good indicator of photo-z performance for science applications \citep{schmidt2020}.
-The methods introduced in this paper allow one to create galaxy catalogs for which each galaxy has a true redshift posterior, which will enable more comprehensive evaluation of photo-z estimators.
-A comprehensive evaluation of the full posteriors from photo-z estimators is a goal of our future work.
+The previous metrics analyze photo-z performance for point estimates, which are insufficient for modern cosmology \citep{newman2022}, and for ensembles of posteriors, which is often misleading and not a good indicator of performance for science applications \citePZp.
+The methods introduced in this paper enable the creation of galaxy catalogs for which each galaxy has a \emph{true} redshift posterior, which will enable more comprehensive evaluation of photo-z estimators.
+An evaluation of the full posteriors from many photo-z estimators is a major goal of future DESC papers.
 
 \begin{figure}[t!]
     \script{photo-z/plot_pit_histogram.py}
@@ -737,22 +793,22 @@ A comprehensive evaluation of the full posteriors from photo-z estimators is a g
 \section{Conclusion \& Summary}
 \label{sec:conclusion}
 
-In this paper we introduced PZFlow, a normalizing flow package in Python, designed for the statistical modeling of astronomical data sets.
+In this paper we introduced PZFlow, a normalizing flow package in Python, designed for the statistical modeling of tabular astronomical data.
 We used PZFlow to forward model galaxy catalogs that include photometry, redshifts, sizes, and ellipticities.
-In addition, each galaxy in our catalog has a true redshift posterior, which can be convolved with measurement errors.
+In addition, each galaxy in our catalog has a \emph{true} redshift posterior, which can be convolved with measurement errors.
 These true posteriors allow a direct evaluation of the posteriors produced by photo-z estimators.
-A similar comparison can be made to posterior estimates for any other galaxy property.
+A similar comparison can be made to posterior estimates for any other galaxy properties.
 
 Direct evaluation of photo-z posteriors is vital for future cosmology analyses which must use all of the information incorporated in the full redshift posteriors \citep{newman2022}.
 This is because only the full redshift posteriors allow one to account for degeneracies in color-redshift space, which will otherwise bias cosmological inference.
-Previous evaluations of photo-z performance focused on point estimates and metrics for ensembles of posteriors, but \citet{schmidt2020} showed these analyses are inadequate for modern cosmology.
-This work enables a future analysis of photo-z estimators on a per-posterior basis, which is a major goal of the LSST DESC.
+Previous evaluations of photo-z performance have focused on point estimates and metrics for ensembles of posteriors, but \citePZt demonstrated these metrics are misleading and inadequate for modern cosmology.
+This work enables future analysis of photo-z estimators on a per-posterior basis, which is a major goal of the LSST DESC.
 
 In addition to forward modeling galaxy catalogs, we demonstrated PZFlow's utility as a density estimator that can be applied to photo-z estimation and other statistical analyses.
 PZFlow achieves high accuracy with relatively little fine tuning and with very few modeling assumptions.
-PZFlow will be a powerful tool for the statistical analysis of tabular astronomical data.
+This makes PZFlow a powerful tool for the statistical analysis of tabular astronomical data.
 
-Note that the code to reproduce the figures in this paper is hosted publicly on Github\footnote{\url{https://github.com/jfcrenshaw/pzflow-paper}}, and the code for each individual figure can be reached by clicking on the Github logo in the margin next to the figure.
+The code to reproduce the figures in this paper is hosted publicly on Github\footnote{\url{https://github.com/jfcrenshaw/pzflow-paper}}, and the code for each individual figure can be found by clicking on the Github logo in the margin next to that figure.
 
 \begin{acknowledgements}
     JFC is supported by...
@@ -822,7 +878,7 @@ Again, we used Adam with an initial learning rate of $10^{-3}$.
 We decreased the learning rate by a factor of 10 every 150 epochs.
 The training loss for this flow is in the right panel of Figure \ref{fig:galaxy-flow-losses}.
 
-For each of the flows that make up the flow ensemble in \ref{sec:photo-z}, we trained for 150 epochs using the Adam optimizer.
+For each of the flows that make up the flow ensemble in Section \ref{sec:photo-z}, we trained for 150 epochs using the Adam optimizer.
 We started each with a learning rate of $10^{-4}$, and decreased the learning rate by a factor of 10 every 50 epochs.
 The training loss for the ensemble is in Figure \ref{fig:ensemble-losses}.
 You can see that each of the flows achieves a different minimum loss.
@@ -859,7 +915,8 @@ Note that after the photometric errors are applied, the error is re-calculated f
 If the original photometric error were reported, it would provide a deterministic link to the original flux.
 
 We have implemented this error model, along with several other extensions to it, in the Python package PhotErr, which is available on the Python Package Index\footnote{\url{https://pypi.org/project/photerr/}} (PyPI), and Github\footnote{\url{https://github.com/jfcrenshaw/photerr}}.
-The extensions include different methods for handling non-detections, methods for modeling errors of extended objects \citep{vandenbusch2020,kuijken2019}, and error models for the Roman and Euclid space telescopes \citep{roman,euclid,graham2020}, however, these extensions are not used in this paper.
+The extensions include different methods for handling non-detections, methods for modeling errors of extended objects \citep{vandenbusch2020,kuijken2019}, and error models for the Roman and Euclid space telescopes \citep{roman,euclid,graham2020}.
+These extensions, however, are not used in this paper.
 
 
 
