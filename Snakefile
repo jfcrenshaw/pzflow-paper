@@ -28,8 +28,8 @@ rule train_conditional_galaxy_flow:
 
 rule simulate_pzflow_catalog:
     input:
-        "src/data/main_galaxy_flow/flow.pzflow.pkl",
-        "src/data/conditional_galaxy_flow/flow.pzflow.pkl",
+        rules.train_main_galaxy_flow.output,
+        rules.train_conditional_galaxy_flow.output,
     output:
         "src/data/pzflow_catalog.pkl",
     cache: True
@@ -39,7 +39,7 @@ rule simulate_pzflow_catalog:
 
 rule train_pz_ensemble:
     input:
-        "src/data/pzflow_catalog.pkl",
+        rules.simulate_pzflow_catalog.output,
     output:
         directory("src/data/pz_ensemble/"),
     cache: True
@@ -49,8 +49,8 @@ rule train_pz_ensemble:
 
 rule calculate_posteriors:
     input:
-        "src/data/pzflow_catalog.pkl",
-        "src/data/pz_ensemble/",
+        rules.simulate_pzflow_catalog.output,
+        rules.train_pz_ensemble.output,
     output:
         "src/data/redshift_posteriors.npz",
     cache: True
@@ -60,8 +60,8 @@ rule calculate_posteriors:
 
 rule calculate_posteriors_without_u:
     input:
-        "src/data/pzflow_catalog.pkl",
-        "src/data/pz_ensemble/",
+        rules.simulate_pzflow_catalog.output,
+        rules.train_pz_ensemble.output,
     output:
         "src/data/redshift_posteriors_without_u.npz",
     cache: True
