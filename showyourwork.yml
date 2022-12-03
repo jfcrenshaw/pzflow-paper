@@ -1,4 +1,4 @@
-version: 0.3.0
+version: 0.4.1
 dependencies:
   src/scripts/intro/plot_two_moons.py:
     - src/data/two_moons_flow.pzflow.pkl

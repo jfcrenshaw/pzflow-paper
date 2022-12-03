@@ -12,4 +12,4 @@ dependencies:
   - pip:
       - photerr==1.0.1
       - pzflow==3.0.0
-      - showyourwork==0.3.0
+      - showyourwork==0.4.1
