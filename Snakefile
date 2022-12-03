@@ -28,8 +28,8 @@ rule train_conditional_galaxy_flow:
 
 rule simulate_pzflow_catalog:
     input:
-        directory("src/data/main_galaxy_flow"),
-        directory("src/data/conditional_galaxy_flow"),
+        "src/data/main_galaxy_flow/flow.pzflow.pkl",
+        "src/data/conditional_galaxy_flow/flow.pzflow.pkl",
     output:
         "src/data/pzflow_catalog.pkl",
     cache: True
