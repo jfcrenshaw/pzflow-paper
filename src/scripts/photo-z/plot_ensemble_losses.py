@@ -13,8 +13,8 @@ with open(paths.data / "pz_ensemble/losses.pkl", "rb") as file:
 
 # plot the losses
 fig, ax = plt.subplots(figsize=(3, 3), constrained_layout=True)
-for flow, loss in losses.items():
-    ax.plot(loss, alpha=0.5, label=flow)
+for i, loss in enumerate(losses.values()):
+    ax.plot(loss, alpha=0.5, label=f"Flow {i+1}")
 ax.legend()
 ax.set(xlabel="Epochs", ylabel="Loss", ylim=(-1.8, -1))
 

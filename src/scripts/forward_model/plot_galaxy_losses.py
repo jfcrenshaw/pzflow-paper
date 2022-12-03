@@ -15,7 +15,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 3), constrained_layout=True)
 
 main_epochs = np.arange(len(main_losses))
 ax1.plot(main_epochs, main_losses)
-ax1.set(xlabel="Epochs", ylabel="Loss", title="Main flow")
+ax1.set(xlabel="Epochs", ylabel="Loss", title="Regular flow")
 
 conditional_epochs = np.arange(len(conditional_losses))
 ax2.plot(conditional_epochs[10:], conditional_losses[10:])

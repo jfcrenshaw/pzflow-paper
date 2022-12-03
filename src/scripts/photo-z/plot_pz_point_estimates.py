@@ -18,7 +18,7 @@ z_phot = grid[pdfs.argmax(axis=1)]
 
 # load the true redshifts
 test_set = load_pzflow_catalog(subset="test")
-z_spec = test_set.redshift[: len(z_phot)].to_numpy()
+z_spec = test_set.redshift.iloc[: len(z_phot)].to_numpy()
 
 # select the non-zero z_phots
 idx = np.where(z_phot > 0)

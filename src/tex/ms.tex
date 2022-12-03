@@ -2,6 +2,8 @@
 \documentclass[twocolumn]{aastex631}
 \usepackage{showyourwork}
 
+\usepackage{lipsum} 
+
 \usepackage{tikz}
 \usetikzlibrary{positioning}
 \usetikzlibrary{shapes}
@@ -73,6 +75,20 @@
 \section{Introduction}
 \label{sec:intro}
 
+\begin{figure*}[t]
+    \script{intro/plot_two_moons.py}
+    \begin{centering}
+        \includegraphics{figures/twomoons_example.pdf}
+        \caption{
+            A normalizing flow demonstrated on the two moons data set from scikit-learn.
+            The two moons data on the left is mapped onto a two dimensional uniform distribution by the bijection $f$.
+            The data are colored by quadrant to visualize their image in the latent space.
+            You can sample the data distribution by sampling from the uniform distribution, and using $f^{-1}$ to map the samples back to the data space.
+        }
+        \label{fig:two-moons}
+    \end{centering}
+\end{figure*}
+
 Astronomical data represent realizations of complex probability distributions.
 A common goal in research is to infer the underlying distribution from a limited set of noisy data, and use this distribution to estimate posterior distributions over galaxy and population parameters.
 An important example is photometric redshift (photo-z) estimation, where galaxy redshift posteriors are estimated from galaxy photometry, using a model informed by a training set of spectroscopic galaxy data \citep{newman2022}.
@@ -90,9 +106,13 @@ Normalizing flows, on the other hand, are a deep learning tool that excel at for
 They operate by learning an invertible transformation of the data distribution into a simpler, tractable latent distribution (such as a normal distribution, hence the name \emph{normalizing} flow).
 This allows sampling and likelihood inference to be performed within the context of the latent distribution, with the normalizing flow acting as a translator between the latent samples and likelihoods, and their corresponding values in the context of the data distribution.
 
-Once trained, a normalizing flow can forward model data with realistic statistical correlations, and since normalizing flows provide exact likelihood inference, each property of the generated data has a \emph{true} posterior.
+Normalizing flows have gained popularity as tools for efficient and flexible sampling for parameter inference (e.g., \citealt{dai2022,dacunha2022,hassan2022}).
+In this paper, we focus on using normalizing flows for forward modeling astronomical data to generate synthetic catalogs.
+Since normalizing flows provide exact likelihood inference, the properties of objects in these catalogs have \emph{true} posteriors.
 When calculating these posteriors, you can convolve error distributions, and marginalize over chosen properties.
 Catalogs with \emph{true} posteriors are useful for the testing and validation of analysis pipelines that estimate posteriors, such as the photo-z estimators used in much of astrophysics and cosmology.
+Previous evaluations of these estimators have focused on comparing point estimates to true values (e.g., \citealt{hildebrandt2010,sanchez2014,graham2018}), or evaluating ensembles of posteriors \citePZp.
+Normalizing flow-generated catalogs with \emph{true} posteriors open up a new, more comprehensive avenue for evaluation of these estimators by enabling posterior-to-posterior comparison.
 
 To facilitate the statistical modeling of galaxy catalogs and other astronomical data sets, we have developed PZFlow, a normalizing flow package for Python.
 With relatively little tuning required by the user, PZFlow can provide a generative model for any tabular data, including continuous and discrete variables, and variables with Euclidean or periodic topology.
@@ -103,23 +123,8 @@ We then use PZFlow to simulate a galaxy catalog (Section \ref{sec:galaxy-catalog
 We also demonstrate using PZFlow as a density estimator, via the example of photo-z estimation (Section \ref{sec:photo-z}).
 We conclude in Section \ref{sec:conclusion}.
 
-
 \section{Normalizing Flows}
 \label{sec:nf}
-
-\begin{figure*}[t!]
-    \script{intro/plot_two_moons.py}
-    \begin{centering}
-        \includegraphics{figures/twomoons_example.pdf}
-        \caption{
-            A normalizing flow demonstrated on the two moons data set from scikit-learn.
-            The two moons data on the left is mapped onto a two dimensional uniform distribution by the bijection $f$.
-            The data are colored by quadrant to visualize their image in the latent space.
-            You can sample the data distribution by sampling from the uniform distribution, and using $f^{-1}$ to map the samples back to the data space.
-        }
-        \label{fig:two-moons}
-    \end{centering}
-\end{figure*}
 
 Normalizing flows model complex, high-dimensional probability distributions by learning a mapping from the data distribution to a tractable latent distribution\footnote{Some of the machine learning literature defines the mapping in the opposite direction.}.
 Often the latent distribution is a standard Normal distribution, and so the mapping ``normalizes'' the data, hence the name ``normalizing flow''.
@@ -453,7 +458,7 @@ In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add ad
 \subsection{Forward modeling redshifts and photometry}
 \label{sec:fwd-model}
 
-\begin{figure*}[t!]
+\begin{figure*}[t]
     \script{forward_model/plot_main_galaxy_corner.py}
     \begin{centering}
         \includegraphics{figures/main_galaxy_corner.pdf}
@@ -465,7 +470,7 @@ In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add ad
     \end{centering}
 \end{figure*}
 
-\begin{figure*}[t!]
+\begin{figure*}[t]
     \script{forward_model/plot_smooth_color_distribution.py}
     \begin{centering}
         \includegraphics{figures/smooth_color_distribution.pdf}
@@ -548,7 +553,7 @@ This might occur, for example, if you include photometry from the Euclid Space T
 You may also wish to marginalize over all values beyond a limiting magnitude if the galaxy was observed, but not detected in that band.
 This might occur, for example, in the low wavelength bands of Lyman dropout galaxies observed by LSST.
 
-\begin{figure}[t!]
+\begin{figure}[t]
     \script{forward_model/plot_posteriors.py}
     \begin{centering}
         \includegraphics{figures/posteriors.pdf}
@@ -563,6 +568,19 @@ This might occur, for example, in the low wavelength bands of Lyman dropout gala
     \end{centering}
 \end{figure}
 
+% this figure is so high just to move it ahead one page in the document
+\begin{figure*}[t]
+    \script{forward_model/plot_conditional_galaxy_corner.py}
+    \begin{centering}
+        \includegraphics{figures/conditional_galaxy_corner.pdf}
+        \caption{
+            Conditional distributions of the ellipticity and size of the galaxies in the CosmoDC2 test set compared to the distribution learned by PZFlow.
+            The close overlap of every pair-wise distribution demonstrates that PZFlow has learned the distribution in CosmoDC2 with high fidelity.
+        }
+        \label{fig:conditional-corner}
+    \end{centering}
+\end{figure*}
+
 To visualize the impacts of error convolution and band marginalization, Figure \ref{fig:posteriors} shows a number of redshift posteriors for a single example galaxy.
 The black posterior is calculated using the true galaxy magnitudes, while the blue posteriors is calculated after adding photometric errors.
 Calculating the posterior using the noisy photometry results in a biased posterior.
@@ -574,25 +592,13 @@ This posterior favors lower redshifts, although has a high-redshift tail that co
 This demonstrates how the $u$ band helps constrain the redshift, and the loss of this information leads to greater uncertainty.
 
 Calculating these posteriors enables direct comparison of true redshift posteriors (consistent with photometric errors and missing bands) with the redshift posteriors estimated by photo-z estimators.
-This is important, as modern cosmology analyses are beginning to rely on full redshift posteriors \citep{newman2022}.
+This is important, as modern cosmology analyses are beginning to increasingly rely on full redshift posteriors \citep{mandelbaum2008,newman2022}.
 \citePZt showed that popular metrics for evaluating photo-z estimators using ensembles of photo-z posteriors can be misleading, and are not well suited to our science.
 PZFlow catalogs with \emph{true} redshift posteriors provide a path forward by enabling the evaluation of photo-z estimators on a per-posterior basis.
 
 
 \subsection{Additional properties with conditional flows}
 \label{sec:fwd-model-conditional}
-
-\begin{figure*}[t!]
-    \script{forward_model/plot_conditional_galaxy_corner.py}
-    \begin{centering}
-        \includegraphics{figures/conditional_galaxy_corner.pdf}
-        \caption{
-            Conditional distributions of the ellipticity and size of the galaxies in the CosmoDC2 test set compared to the distribution learned by PZFlow.
-            The close overlap of every pair-wise distribution demonstrates that PZFlow has learned the distribution in CosmoDC2 with high fidelity.
-        }
-        \label{fig:conditional-corner}
-    \end{centering}
-\end{figure*}
 
 In addition to the galaxy magnitudes and redshifts modeled above, we wish to include other galaxy properties in the catalog, such as galaxy size and ellipticity.
 In principle, we could have included these variables in the original normalizing flow.
@@ -621,7 +627,7 @@ This small catalog was generated for visualization purposes, but the normalizing
 \section{Photometric Redshift Estimation}
 \label{sec:photo-z}
 
-\begin{figure*}[t!]
+\begin{figure*}[t]
     \script{photo-z/plot_ensemble_posteriors.py}
     \begin{centering}
         \includegraphics{figures/ensemble_posteriors.pdf}
@@ -691,7 +697,7 @@ Sacrificing the information in the $u$ band increases the uncertainty of the red
 In this instance, a second potential higher-redshift mode is created.
 Conversely, this demonstrates how the additon of $u$ band information rules out the higher redshift solution for this galaxy.
 
-\begin{figure}[t!]
+\begin{figure}[t]
     \script{photo-z/plot_marginalized_posterior.py}
     \begin{centering}
         \includegraphics{figures/posterior_marginalized.pdf}
@@ -708,28 +714,7 @@ Conversely, this demonstrates how the additon of $u$ band information rules out 
 
 \subsection{Photo-z metrics}
 
-In this section, we evaluate the performance of PZFlow using common photo-z metrics.
-Note these metrics are optimistic in the sense that the training set is representative of the test set, which is usually not the case in modern cosmology applications.
-
-The most common metrics for photo-z estimation concern photo-z point estimates, which are a compression of the photo-z posterior to a single redshift estimate.
-We make the common choice of selecting the mode of the posteriors\footnote{The mean redshift is a poor choice, since photo-z posteriors are often multimodal, and so the mean value can lie between two modes at a redshift with very small probability density.}.
-We compute metrics of the quantity $\Delta z = (z_\text{phot} - z_\text{true}) / (1 + z_\text{true})$, where the denominator accounts for naturally greater uncertainties at high redshift.
-
-Figure \ref{fig:point-estimates} compares the photo-z point estimates to the true redshifts.
-The point estimates for most galaxies lie along the diagonal, indicating strong performance.
-There are the common photo-z ``wings'', indicating redshifts where important spectral features are transitioning between neighboring photometric bands.
-There is also a small population of high-redshift objects that were mistakenly identified as very low redshift objects.
-This point estimate plot is comparable to other high-performance machine learning photo-z estimators when provided with representative training sets \needscite.
-
-Figure \ref{fig:binned-metrics} shows the photo-z point estimate metrics from the LSST DESC Science Requirements Document (SRD; \citealt{descSRD}) as a function of true redshift.
-The \emph{bias} is defined as the median of $\Delta z$; the \emph{scatter} is defined as $\text{IQR} / 1.349$, where IQR is the interquartile range of $\Delta z$; the \emph{outlier fraction} is defined as the fraction of galaxies for which $\Delta z$ is greater than three times the scatter.
-The requirements from the SRD are plotted in black to provide a sense of scale.
-
-Like many photo-z estimators, PZFlow performs well to a redshift of approximately 1.5.
-At higher redshifts, our estimator does not meet the bias and scatter requirements, because there is very little training data in this redshift range.
-We note however that for many cosmology applications, it is okay for the bias to exceed the required limits, as long as the bias can be well determined via some calibration process \citep{newman2022}.
-
-\begin{figure}[t!]
+\begin{figure}[t]
     \script{photo-z/plot_pz_point_estimates.py}
     \begin{centering}
         \includegraphics{figures/pz_point_estimates.pdf}
@@ -739,6 +724,54 @@ We note however that for many cosmology applications, it is okay for the bias to
         \label{fig:point-estimates}
     \end{centering}
 \end{figure}
+
+\begin{figure*}[t]
+    \script{photo-z/plot_binned_metrics.py}
+    \begin{centering}
+        \includegraphics{figures/binned_metrics.pdf}
+        \caption{
+            The bias, scatter, and outlier fraction of the photo-z point estimates as a function of true galaxy redshift.
+            The dashed black lines represent the requirements for LSST cosmology as stated in the LSST DESC SRD \citep{descSRD}.
+            These lines are to provide a sense of scale for these metrics.
+            You can see that PZFlow meets the bias and scatter requirements up to redshift $\sim$ 1.5, while meeting the outlier fraction requirements for all redshifts.
+            We note that individual redshifts do not actually need to meet the bias requirement as long as the bias can be well calibrated via some other source, e.g. galaxy clustering.
+        }
+        \label{fig:binned-metrics}
+    \end{centering}
+\end{figure*}
+
+\begin{figure}[t]
+    \script{photo-z/plot_pit_histogram.py}
+    \begin{centering}
+        \includegraphics{figures/pit_histogram.pdf}
+        \caption{
+            The probability integral transform (PIT) histogram for PZFlow photo-z posteriors.
+            The PIT characterizes the calibration of the estimated posteriors, with the horizontal black line indicating perfect calibration.
+        }
+        \label{fig:pit-histogram}
+    \end{centering}
+\end{figure}
+
+In this section, we evaluate the performance of PZFlow using common photo-z metrics.
+Note these metrics are optimistic in the sense that the training set is representative of the test set, which is usually not the case in modern cosmology applications.
+
+The most common metrics for photo-z estimation concern photo-z point estimates, which are a compression of the photo-z posterior to a single redshift estimate (e.g., \citealt{hildebrandt2010,sanchez2014}).
+We make the common choice of selecting the mode of the posteriors\footnote{The mean redshift is a poor choice, since photo-z posteriors are often multimodal, and so the mean value can lie between two modes at a redshift with very small probability density.}.
+We compute metrics of the quantity $\Delta z = (z_\text{phot} - z_\text{true}) / (1 + z_\text{true})$, where the denominator accounts for naturally greater uncertainties at high redshift.
+
+Figure \ref{fig:point-estimates} compares the photo-z point estimates to the true redshifts.
+The point estimates for most galaxies lie along the diagonal, indicating strong performance.
+There are the common photo-z ``wings'', indicating redshifts where important spectral features are transitioning between neighboring photometric bands.
+There is also a small population of high-redshift objects that were mistakenly identified as very low redshift objects.
+This point estimate plot is comparable to other high-performance machine learning photo-z estimators when provided with representative training sets \citep{sanchez2014}.
+
+Figure \ref{fig:binned-metrics} shows the photo-z point estimate metrics from the LSST DESC Science Requirements Document (SRD; \citealt{descSRD}) as a function of true redshift.
+The \emph{bias} is defined as the median of $\Delta z$; the \emph{scatter} is defined as $\text{IQR} / 1.349$, where IQR is the interquartile range of $\Delta z$; the \emph{outlier fraction} is defined as the fraction of galaxies for which $\Delta z$ is greater than three times the scatter.
+The requirements from the SRD are plotted in black to provide a sense of scale.
+
+Like many photo-z estimators, PZFlow performs well to a redshift of approximately 1.5.
+At higher redshifts, our estimator does not meet the bias and scatter requirements, because there is very little training data in this redshift range.
+We note however that for many cosmology applications, it is okay for the bias to exceed the required limits, as long as the bias can be well determined via some calibration process \citep{newman2015}.
 
 Another common metric is the probability integral transform (PIT) (see e.g. \citePZa, \citealt{dey2022}).
 The PIT metric is used to determine if posteriors are well calibrated, i.e. if true values fall within X\% confidence intervals X\% of the time.
@@ -754,40 +787,9 @@ There is also a slight rightward tilt.
 This indicates a small negative bias, which reflects the intrinsic prior towards smaller redshifts, as this is where the majority of galaxies in the training set lie.
 This negative bias is also visible in the far left panel of Figure \ref{fig:binned-metrics}.
 
-\begin{figure*}[t!]
-    \script{photo-z/plot_binned_metrics.py}
-    \begin{centering}
-        \includegraphics{figures/binned_metrics.pdf}
-        \caption{
-            The bias, scatter, and outlier fraction of the photo-z point estimates as a function of true galaxy redshift.
-            The dashed black lines represent the requirements for LSST cosmology as stated in the LSST DESC SRD \citep{descSRD}.
-            These lines are to provide a sense of scale for these metrics.
-            You can see that PZFlow meets the bias and scatter requirements up to redshift $\sim$ 1.5, while meeting the outlier fraction requirements for all redshifts.
-            We note that individual redshifts do not actually need to meet the bias requirement as long as the bias can be well calibrated via some other source, e.g. galaxy clustering.
-        }
-        \label{fig:binned-metrics}
-    \end{centering}
-\end{figure*}
-
 The previous metrics analyze photo-z performance for point estimates, which are insufficient for modern cosmology \citep{newman2022}, and for ensembles of posteriors, which is often misleading and not a good indicator of performance for science applications \citePZp.
 The methods introduced in this paper enable the creation of galaxy catalogs for which each galaxy has a \emph{true} redshift posterior, which will enable more comprehensive evaluation of photo-z estimators.
-An evaluation of the full posteriors from many photo-z estimators is a major goal of future DESC papers.
-
-\begin{figure}[t!]
-    \script{photo-z/plot_pit_histogram.py}
-    \begin{centering}
-        \includegraphics{figures/pit_histogram.pdf}
-        \caption{
-            The histogram of the probability integral transform (PIT) values of the photo-z posteriors.
-            This figure characterizes the calibration of the estimated posteriors.
-            In other words, does the true redshift lie at the center/in the tails of the posteriors as often as one would expect?
-            Ideally, this histogram should be flat, matching the dashed black line.
-            The fact that this distribution has a central peak indicates that the flow ensemble produces posteriors that are a little too conservative in their predictions.
-            The slight rightward tilt indicates that the posteriors also have a negative redshift bias.
-        }
-        \label{fig:pit-histogram}
-    \end{centering}
-\end{figure}
+An full evaluation of photo-z estimators on a posterior-by-posterior basis is a major goal of the LSST DESC.
 
 
 \section{Conclusion \& Summary}
@@ -811,7 +813,7 @@ This makes PZFlow a powerful tool for the statistical analysis of tabular astron
 The code to reproduce the figures in this paper is hosted publicly on Github\footnote{\url{https://github.com/jfcrenshaw/pzflow-paper}}, and the code for each individual figure can be found by clicking on the Github logo in the margin next to that figure.
 
 \begin{acknowledgements}
-    JFC is supported by...
+    \lipsum[1-1]
 \end{acknowledgements}
 
 \software{
@@ -832,33 +834,6 @@ The code to reproduce the figures in this paper is hosted publicly on Github\foo
 
 \section{Training details}
 \label{app:training-details}
-
-\begin{figure*}[t!]
-    \script{forward_model/plot_galaxy_losses.py}
-    \begin{centering}
-        \includegraphics{figures/galaxy_flow_losses.pdf}
-        \caption{
-            Training losses for the galaxy flows.
-            Left: losses for the normal flow.
-            After epochs 50 and 100, you can see a drop in the loss due to the decrease in the learning rate.
-            Right: losses for the conditional flow.
-            After epochs 150 and 300, you can see a drop in the loss due to the decrease in the learning rate.
-        }
-        \label{fig:galaxy-flow-losses}
-    \end{centering}
-\end{figure*}
-
-\begin{figure}[t!]
-    \script{photo-z/plot_ensemble_losses.py}
-    \begin{centering}
-        \includegraphics{figures/ensemble_losses.pdf}
-        \caption{
-            Training losses for the four flows in the flow ensemble.
-            We have zoomed in to the bottom of the loss curve so you can see that each of the flows converges to a different minimum loss.
-        }
-        \label{fig:ensemble-losses}
-    \end{centering}
-\end{figure}
 
 In this section we list some technical details of training the normalizing flows.
 Every flow is trained via minimizing the negative log-likelihood
@@ -883,6 +858,33 @@ We started each with a learning rate of $10^{-4}$, and decreased the learning ra
 The training loss for the ensemble is in Figure \ref{fig:ensemble-losses}.
 You can see that each of the flows achieves a different minimum loss.
 Apparently, each has found a different potential solution in the neural network's parameter space.
+
+\begin{figure*}[t!]
+    \script{forward_model/plot_galaxy_losses.py}
+    \begin{centering}
+        \includegraphics{figures/galaxy_flow_losses.pdf}
+        \caption{
+            Training losses for the normalizing flows.
+            Left: losses for the regular flow.
+            After epochs 50 and 100, you can see a drop in the loss due to the decrease in the learning rate.
+            Right: losses for the conditional flow.
+            After epochs 150 and 300, you can see a drop in the loss due to the decrease in the learning rate.
+        }
+        \label{fig:galaxy-flow-losses}
+    \end{centering}
+\end{figure*}
+
+\begin{figure}[t!]
+    \script{photo-z/plot_ensemble_losses.py}
+    \begin{centering}
+        \includegraphics{figures/ensemble_losses.pdf}
+        \caption{
+            Training losses for the four flows in the flow ensemble.
+            We have zoomed in to the bottom of the loss curve so you can see that each of the flows converges to a different minimum loss.
+        }
+        \label{fig:ensemble-losses}
+    \end{centering}
+\end{figure}
 
 
 \section{LSST Error Model}
@@ -914,13 +916,12 @@ In contrast, we use the exact form of Equation \ref{eq:err}, and model errors as
 Note that after the photometric errors are applied, the error is re-calculated from the ``observed'' flux, and this new error is reported as the estimated photometric error.
 If the original photometric error were reported, it would provide a deterministic link to the original flux.
 
-We have implemented this error model, along with several other extensions to it, in the Python package PhotErr, which is available on the Python Package Index\footnote{\url{https://pypi.org/project/photerr/}} (PyPI), and Github\footnote{\url{https://github.com/jfcrenshaw/photerr}}.
-The extensions include different methods for handling non-detections, methods for modeling errors of extended objects \citep{vandenbusch2020,kuijken2019}, and error models for the Roman and Euclid space telescopes \citep{roman,euclid,graham2020}.
-These extensions, however, are not used in this paper.
+We have implemented this error model, along with several other extensions, in the Python package PhotErr, which is available on the Python Package Index\footnote{\url{https://pypi.org/project/photerr/}} (PyPI), and Github\footnote{\url{https://github.com/jfcrenshaw/photerr}}.
+The extensions include different methods for handling non-detections, methods for modeling errors of extended objects (using models from \citealt{vandenbusch2020,kuijken2019}), and error models for the Roman and Euclid space telescopes \citep{roman,euclid,graham2020}.
 
 
 
-\bibliography{bib.bib}
+\bibliography{bib,nfbib}
 
 
 \end{document}

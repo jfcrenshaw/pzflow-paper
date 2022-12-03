@@ -19,7 +19,7 @@ z_phot = grid[pdfs.argmax(axis=1)]
 
 # load the true redshifts
 test_set = load_pzflow_catalog(subset="test")
-z_spec = test_set.redshift[: len(z_phot)]
+z_spec = test_set.redshift.iloc[: len(z_phot)]
 
 # calculate the weighted error values
 ez = (z_phot - z_spec) / (1 + z_spec)
