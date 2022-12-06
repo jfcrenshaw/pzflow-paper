@@ -29,7 +29,7 @@ fig, (ax1, ax2) = plt.subplots(
 )
 
 # plot the true redshift
-idx = 10
+idx = 18
 z = test_set["redshift"].iloc[idx]
 ax1.axvline(z, c="C3", ls="--", label="True redshift")
 

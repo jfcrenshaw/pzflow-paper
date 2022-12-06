@@ -107,12 +107,12 @@ They operate by learning an invertible transformation of the data distribution i
 This allows sampling and likelihood inference to be performed within the context of the latent distribution, with the normalizing flow acting as a translator between the latent samples and likelihoods, and their corresponding values in the context of the data distribution.
 
 Normalizing flows have gained popularity as tools for efficient and flexible sampling for parameter inference (e.g., \citealt{dai2022,dacunha2022,hassan2022}).
-In this paper, we focus on using normalizing flows for forward modeling astronomical data to generate synthetic catalogs.
+In this paper, we focus on photo-z's and using normalizing flows to generate synthetic catalogs.
 Since normalizing flows provide exact likelihood inference, the properties of objects in these catalogs have \emph{true} posteriors.
 When calculating these posteriors, you can convolve error distributions, and marginalize over chosen properties.
 Catalogs with \emph{true} posteriors are useful for the testing and validation of analysis pipelines that estimate posteriors, such as the photo-z estimators used in much of astrophysics and cosmology.
 Previous evaluations of these estimators have focused on comparing point estimates to true values (e.g., \citealt{hildebrandt2010,sanchez2014,graham2018}), or evaluating ensembles of posteriors \citePZp.
-Normalizing flow-generated catalogs with \emph{true} posteriors open up a new, more comprehensive avenue for evaluation of these estimators by enabling posterior-to-posterior comparison.
+Normalizing flow catalogs with \emph{true} posteriors open up a new, more comprehensive avenue for evaluation of these estimators by enabling posterior-to-posterior comparison.
 
 To facilitate the statistical modeling of galaxy catalogs and other astronomical data sets, we have developed PZFlow, a normalizing flow package for Python.
 With relatively little tuning required by the user, PZFlow can provide a generative model for any tabular data, including continuous and discrete variables, and variables with Euclidean or periodic topology.
@@ -588,7 +588,7 @@ The orange posterior has had the photometric errors convolved as in Equation \re
 Convolving the errors broadens the posterior so that the true redshift lies within the support of the posterior.
 This broadening reflects the increased uncertainty due to the photometric errors.
 Finally, the green posterior has had the $u$ band marginalized.
-This posterior favors lower redshifts, although has a high-redshift tail that covers the support of the previous posteriors. 
+This posterior favors higher redshifts, but still comfortably agrees with the true redshift.
 This demonstrates how the $u$ band helps constrain the redshift, and the loss of this information leads to greater uncertainty.
 
 Calculating these posteriors enables direct comparison of true redshift posteriors (consistent with photometric errors and missing bands) with the redshift posteriors estimated by photo-z estimators.
@@ -689,7 +689,7 @@ This provides a redshift posterior for each galaxy.
 Posteriors for three galaxies can be seen in Figure \ref{fig:ensemble-posteriors}.
 Each flow produces a PDF which may contain slightly different features in each case.
 By averaging over the individual posteriors, we select for features that are common between models, while smoothing over features that are present in only a single model.
-\note{Compare these to the true posteriors.}
+We can also treat the ensemble of posteriors as a distribution over possible posteriors, which will allow for more consistent error calibration in cosmological analyses \citep{zhang2023}.
 
 We can calculate posteriors for galaxies with missing magnitudes by marginalizing over the missing magnitudes, as described in Section \ref{sec:true-posteriors}.
 An example is shown in Figure \ref{fig:posterior_marginalized}, which compares a posterior calculated using every LSST band to a posterior with the $u$ band marginalized.
