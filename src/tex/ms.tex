@@ -43,13 +43,13 @@
 \title{Statistical Modeling of Galaxy Catalogues with Normalizing Flows}
 
 % Author list
-\correspondingauthor{John Franklin Crenshaw}
+\correspondingauthor{John~Franklin~Crenshaw}
 \email{jfc20@uw.edu}
 
-\author[0000-0002-2495-3514]{John Franklin Crenshaw}
-\affiliation{DIRAC Institute and Department of Physics, University of Washington, Seattle, WA 98195, USA}
+\author[0000-0002-2495-3514]{John~Franklin~Crenshaw}
+\affiliation{DIRAC Institute and the Department of Physics, University of Washington, Seattle, WA 98195, USA}
 
-\author[0000-0002-6825-5283]{J. Bryce Kalmbach}
+\author[0000-0002-6825-5283]{J.~Bryce~Kalmbach}
 \affiliation{DIRAC Institute and the Department of Astronomy, University of Washington, Seattle, WA 98195, USA}
 
 \author[0000-0003-4906-8447]{Alexander~Gagliano}
@@ -58,19 +58,20 @@
 \affiliation{\CAPS}
 \affiliation{\NSF}
 
+\author[0000-0001-8043-5378]{Ziang Yan}
+\affiliation{Ruhr University Bochum, Faculty of Physics and Astronomy, Astronomical Institute (AIRUB), German Centre for Cosmological Lensing, 44780 Bochum, Germany}
 
-\author{Ziang Yan}
+\author[0000-0001-5576-8189]{Andrew~J.~Connolly}
+\affiliation{DIRAC Institute and the Department of Astronomy, University of Washington, Seattle, WA 98195, USA}
 
-\author{Andrew Connolly}
+\author{François~Lanusse}
 
-\author{Francois Lanusse}
+\author{Alex~I.~Malz}
 
-\author{Alex Malz}
-
-\author[0000-0002-5091-0470]{Samuel J. Schmidt}
+\author[0000-0002-5091-0470]{Samuel~J.~Schmidt}
 \affiliation{Department of Physics and Astronomy, University of California, One Shields Avenue, Davis, CA 95616, USA}
 
-\collaboration{99}{(The LSST Dark Energy Science Collaboration)}
+\collaboration{99}{The LSST Dark Energy Science Collaboration}
 
 
 \begin{abstract}
@@ -822,13 +823,19 @@ In addition to forward modeling galaxy catalogs, we demonstrated PZFlow's utilit
 PZFlow achieves high accuracy with relatively little fine tuning and with very few modeling assumptions.
 This makes PZFlow a powerful tool for the statistical analysis of tabular astronomical data.
 
-The code to reproduce the figures in this paper is hosted publicly on Github\footnote{\url{https://github.com/jfcrenshaw/pzflow-paper}}, and the code for each individual figure can be found by clicking on the Github logo in the margin next to that figure.
+This paper was written using the showyourwork\footnote{\url{https://show-your.work/}} workflow manager.
+The code to reproduce this paper is hosted publicly on Github\footnote{\url{https://github.com/jfcrenshaw/pzflow-paper}}, and the code for each individual figure can be found by clicking on the Github logo in the margin next to that figure.
 
 \begin{acknowledgements}
-    \lipsum[1-1]
-    Author contributions are listed below:
-    A.~Gagliano: validated code, developed use cases and associated tutorials; revised manuscript text.
-    S.~J.~Schimdt: consulted on design and testing of software
+    Author contributions are listed below: \\
+    J.~F.~Crenshaw: created PZFlow, designed experiments, wrote paper. \\
+    J.~B.~Kalmbach: wrote early normalizing flow code that evolved into PZFlow; photo-z estimation. \\
+    A.~Gagliano: validated code, developed use cases and associated tutorials; revised manuscript text. \\
+    Z.~Yan: contributed to PZFlow and PhotErr. \\
+    A.~J.~Connolly: discussion during development. \\
+    F.~Lanusse: wrote early normalizing flow code that evolved into PZFlow. \\
+    A.~I.~Malz: consulted on design and testing of PZFlow. \\
+    S.~J.~Schimdt: consulted on design and testing of PZFlow and PhotErr. \\
 \end{acknowledgements}
 
 \software{
