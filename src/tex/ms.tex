@@ -63,8 +63,10 @@
 \affiliation{\dirac}
 
 \author{François~Lanusse}
+\affiliation{\note{François's affiliation}}
 
 \author{Alex~I.~Malz}
+\affiliation{\note{Alex's affiliation}}
 
 \author[0000-0002-5091-0470]{Samuel~J.~Schmidt}
 \affiliation{Department of Physics and Astronomy, University of California, One Shields Avenue, Davis, CA 95616, USA}
@@ -540,30 +542,6 @@ This is the subject of the next section.
 \subsection{Calculating true posteriors}
 \label{sec:true-posteriors}
 
-Since we have direct access to the probability distribution from which the photometry and redshifts are drawn, we can calculate the true redshift posterior for each galaxy: $p(z|m)$ where $m$ is the vector of galaxy magnitudes.
-We note that this is not an estimate, like what would be returned by a photo-z estimator, but rather the truth, obtained from the model that generated the photometry and redshifts in the first place.
-
-In addition to calculating the true posterior, $p(z|m)$, we can calculate a true posterior that is consistent with the photometric errors:
-\begin{align}
-    p(z|m, \sigma_m) = \int p(z|\hat{m}) p(\hat{m}|m, \sigma_m) d\hat{m},
-    \label{eq:err-conv}
-\end{align}
-where $\sigma_m$ is the vector of photometric errors returned by the error model, and $\hat{m}$ are possible noisy observations of the true magnitudes, $m$.
-We can evaluate this integral numerically by sampling $\hat{m} \sim p(\hat{m}|m, \sigma_m)$, evaluating $p(z, \hat{m})$ on a redshift grid, and normalizing to obtain $p(z|\hat{m})$.
-Averaging $p(z|\hat{m})$ over the samples $\hat{m}$ yields $p(z|m, \sigma_m)$.
-This is the ``best case scenario'' redshift posterior that photo-z estimators hope to estimate.
-
-We can also marginalize over any missing bands, $n$:
-\begin{align}
-    p(z|\hat{m}) = \frac{1}{p(\hat{m})} \int p(z, n, \hat{m}) dn,
-\end{align}
-which can be calculated by evaluating $p(z, n, \hat{m})$ on a grid of $z$ and $n$, summing over $n$ to yield $p(z, \hat{m})$, and normalizing with respect to redshift to yield $p(z|\hat{m})$.
-You can once again average over $\hat{m}$ samples to convolve the photometric errors.
-You may wish to marginalize over all values of $n$ if the galaxy was not observed in that band.
-This might occur, for example, if you include photometry from the Euclid Space Telescope \citep{euclid}, which will not have complete coverage of the LSST catalog.
-You may also wish to marginalize over all values beyond a limiting magnitude if the galaxy was observed, but not detected in that band.
-This might occur, for example, in the low wavelength bands of Lyman dropout galaxies observed by LSST.
-
 \begin{figure}[t]
     \script{forward_model/plot_posteriors.py}
     \begin{centering}
@@ -592,6 +570,30 @@ This might occur, for example, in the low wavelength bands of Lyman dropout gala
     \end{centering}
 \end{figure*}
 
+Since we have direct access to the probability distribution from which the photometry and redshifts are drawn, we can calculate the true redshift posterior for each galaxy: $p(z|m)$ where $m$ is the vector of galaxy magnitudes.
+We note that this is not an estimate, like what would be returned by a photo-z estimator, but rather the truth, obtained from the model that generated the photometry and redshifts in the first place.
+
+In addition to calculating the true posterior, $p(z|m)$, we can calculate a true posterior that is consistent with the photometric errors:
+\begin{align}
+    p(z|m, \sigma_m) = \int p(z|\hat{m}) p(\hat{m}|m, \sigma_m) d\hat{m},
+    \label{eq:err-conv}
+\end{align}
+where $\sigma_m$ is the vector of photometric errors returned by the error model, and $\hat{m}$ are possible noisy observations of the true magnitudes, $m$.
+We can evaluate this integral numerically by sampling $\hat{m} \sim p(\hat{m}|m, \sigma_m)$, evaluating $p(z, \hat{m})$ on a redshift grid, and normalizing to obtain $p(z|\hat{m})$.
+Averaging $p(z|\hat{m})$ over the samples $\hat{m}$ yields $p(z|m, \sigma_m)$.
+This is the ``best case scenario'' redshift posterior that photo-z estimators hope to estimate.
+
+We can also marginalize over any missing bands, $n$:
+\begin{align}
+    p(z|\hat{m}) = \frac{1}{p(\hat{m})} \int p(z, n, \hat{m}) dn,
+\end{align}
+which can be calculated by evaluating $p(z, n, \hat{m})$ on a grid of $z$ and $n$, summing over $n$ to yield $p(z, \hat{m})$, and normalizing with respect to redshift to yield $p(z|\hat{m})$.
+You can once again average over $\hat{m}$ samples to convolve the photometric errors.
+You may wish to marginalize over all values of $n$ if the galaxy was not observed in that band.
+This might occur, for example, if you include photometry from the Euclid Space Telescope \citep{euclid}, which will not have complete coverage of the LSST catalog.
+You may also wish to marginalize over all values beyond a limiting magnitude if the galaxy was observed, but not detected in that band.
+This might occur, for example, in the low wavelength bands of Lyman dropout galaxies observed by LSST.
+
 To visualize the impacts of error convolution and band marginalization, Figure \ref{fig:posteriors} shows a number of redshift posteriors for a single example galaxy.
 The black posterior is calculated using the true galaxy magnitudes, while the blue posteriors is calculated after adding photometric errors.
 Calculating the posterior using the noisy photometry results in a biased posterior.
@@ -610,6 +612,23 @@ PZFlow catalogs with \emph{true} redshift posteriors provide a path forward by e
 
 \subsection{Additional properties with conditional flows}
 \label{sec:fwd-model-conditional}
+
+% this figure is so high just to move it ahead one page in the document
+\begin{figure*}[t]
+    \script{photo-z/plot_ensemble_posteriors.py}
+    \begin{centering}
+        \includegraphics{figures/ensemble_posteriors.pdf}
+        \caption{
+            The ensemble of posteriors for three example galaxies.
+            Flows 1-4 label the individual posteriors produced by each of the flows that make up the ensemble.
+            The dashed black line is the mean of these individual posteriors and is the value used by the ensemble.
+            The vertical gray line labeled ``Truth'' denotes the true redshift of the galaxy.
+            Note these galaxies were specifically chosen for their broad, multimodal posteriors.
+            The posteriors of most galaxies are sharp and unimodal.
+        }
+        \label{fig:ensemble-posteriors}
+    \end{centering}
+\end{figure*}
 
 In addition to the galaxy magnitudes and redshifts modeled above, we wish to include other galaxy properties in the catalog, such as galaxy size and ellipticity.
 In principle, we could have included these variables in the original normalizing flow.
@@ -637,22 +656,6 @@ This small catalog was generated for visualization purposes, but the normalizing
 
 \section{Photometric Redshift Estimation}
 \label{sec:photo-z}
-
-\begin{figure*}[t]
-    \script{photo-z/plot_ensemble_posteriors.py}
-    \begin{centering}
-        \includegraphics{figures/ensemble_posteriors.pdf}
-        \caption{
-            The ensemble of posteriors for three example galaxies.
-            Flows 1-4 label the individual posteriors produced by each of the flows that make up the ensemble.
-            The dashed black line is the mean of these individual posteriors and is the value used by the ensemble.
-            The vertical gray line labeled ``Truth'' denotes the true redshift of the galaxy.
-            Note these galaxies were specifically chosen for their broad, multimodal posteriors.
-            The posteriors of most galaxies are sharp and unimodal.
-        }
-        \label{fig:ensemble-posteriors}
-    \end{centering}
-\end{figure*}
 
 In addition to forward modeling, normalizing flows are powerful and flexible models for density estimation.
 This makes them useful tools for estimating posterior distributions for galaxy properties, conditioned on observed features of the galaxy.
@@ -689,6 +692,20 @@ For more details on training the ensemble, see Appendix \ref{app:training-detail
 
 \subsection{Estimating posteriors}
 
+\begin{figure}[t]
+    \script{photo-z/plot_marginalized_posterior.py}
+    \begin{centering}
+        \includegraphics{figures/posterior_marginalized.pdf}
+        \caption{
+            Redshift posteriors for an example galaxy.
+            The vertical red line indicates the true redshift.
+            The black posterior is estimated using the information from all 6 LSST bands (and includes convolution of the photometric errors).
+            The orange posterior has had the $u$ band marginalized, which opens up a second high-redshift mode.
+        }
+        \label{fig:posterior_marginalized}
+    \end{centering}
+\end{figure}
+
 For each flow in the ensemble, we estimate $p(z, m)$ by marginalizing over the photometric errors:
 \begin{align}
     p(z| \hat{m}, \sigma_m) \propto \int dm \, p(z, m) \, p(m| \hat{m}, \sigma_m),
@@ -707,20 +724,6 @@ An example is shown in Figure \ref{fig:posterior_marginalized}, which compares a
 Sacrificing the information in the $u$ band increases the uncertainty of the redshift inference.
 In this instance, a second potential higher-redshift mode is created.
 Conversely, this demonstrates how the additon of $u$ band information rules out the higher redshift solution for this galaxy.
-
-\begin{figure}[t]
-    \script{photo-z/plot_marginalized_posterior.py}
-    \begin{centering}
-        \includegraphics{figures/posterior_marginalized.pdf}
-        \caption{
-            Redshift posteriors for an example galaxy.
-            The vertical red line indicates the true redshift.
-            The black posterior is estimated using the information from all 6 LSST bands (and includes convolution of the photometric errors).
-            The orange posterior has had the $u$ band marginalized, which opens up a second high-redshift mode.
-        }
-        \label{fig:posterior_marginalized}
-    \end{centering}
-\end{figure}
 
 
 \subsection{Photo-z metrics}
@@ -859,30 +862,6 @@ The code to reproduce this paper is hosted publicly on Github\footnote{\url{http
 \section{Training details}
 \label{app:training-details}
 
-In this section we list some technical details of training the normalizing flows.
-Every flow is trained via minimizing the negative log-likelihood
-\begin{align}
-    \mathcal{L} = - \, \mathbb{E}[ \, \log p(x) \, ],
-\end{align}
-where the expectation is performed over galaxies in the training set and $p(x)$ is defined in Equation \ref{eq:px}.
-
-For the main flow in Section \ref{sec:galaxy-catalog}, we trained for 150 epochs.
-We used the Adam optimizer \citep{adam}, starting with a learning rate of $10^{-3}$.
-We decreased the learning rate by a factor of 10 every 50 epochs.
-Training took 7 minutes on a Tesla P100 12GB GPU.
-The training loss for this flow is in the left panel of Figure \ref{fig:galaxy-flow-losses}.
-
-For the conditional flow in \ref{sec:galaxy-catalog}, we trained for 450 epochs.
-Again, we used Adam with an initial learning rate of $10^{-3}$.
-We decreased the learning rate by a factor of 10 every 150 epochs.
-The training loss for this flow is in the right panel of Figure \ref{fig:galaxy-flow-losses}.
-
-For each of the flows that make up the flow ensemble in Section \ref{sec:photo-z}, we trained for 150 epochs using the Adam optimizer.
-We started each with a learning rate of $10^{-4}$, and decreased the learning rate by a factor of 10 every 50 epochs.
-The training loss for the ensemble is in Figure \ref{fig:ensemble-losses}.
-You can see that each of the flows achieves a different minimum loss.
-Apparently, each has found a different potential solution in the neural network's parameter space.
-
 \begin{figure*}[t!]
     \script{forward_model/plot_galaxy_losses.py}
     \begin{centering}
@@ -909,6 +888,30 @@ Apparently, each has found a different potential solution in the neural network'
         \label{fig:ensemble-losses}
     \end{centering}
 \end{figure}
+
+In this section we list some technical details of training the normalizing flows.
+Every flow is trained via minimizing the negative log-likelihood
+\begin{align}
+    \mathcal{L} = - \, \mathbb{E}[ \, \log p(x) \, ],
+\end{align}
+where the expectation is performed over galaxies in the training set and $p(x)$ is defined in Equation \ref{eq:px}.
+
+For the main flow in Section \ref{sec:galaxy-catalog}, we trained for 150 epochs.
+We used the Adam optimizer \citep{adam}, starting with a learning rate of $10^{-3}$.
+We decreased the learning rate by a factor of 10 every 50 epochs.
+Training took 7 minutes on a Tesla P100 12GB GPU.
+The training loss for this flow is in the left panel of Figure \ref{fig:galaxy-flow-losses}.
+
+For the conditional flow in \ref{sec:galaxy-catalog}, we trained for 450 epochs.
+Again, we used Adam with an initial learning rate of $10^{-3}$.
+We decreased the learning rate by a factor of 10 every 150 epochs.
+The training loss for this flow is in the right panel of Figure \ref{fig:galaxy-flow-losses}.
+
+For each of the flows that make up the flow ensemble in Section \ref{sec:photo-z}, we trained for 150 epochs using the Adam optimizer.
+We started each with a learning rate of $10^{-4}$, and decreased the learning rate by a factor of 10 every 50 epochs.
+The training loss for the ensemble is in Figure \ref{fig:ensemble-losses}.
+You can see that each of the flows achieves a different minimum loss.
+Apparently, each has found a different potential solution in the neural network's parameter space.
 
 
 \section{LSST Error Model}
