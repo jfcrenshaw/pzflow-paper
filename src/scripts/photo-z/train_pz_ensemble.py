@@ -112,17 +112,17 @@ flowEns = FlowEnsemble(
 
 # we will also convolve the photometric errors during training
 
-opt = optax.adam(1e-4)
+opt = optax.adam(1e-6)
 losses1 = flowEns.train(
     train_set, convolve_errs=True, epochs=50, optimizer=opt, seed=0, verbose=True
 )
 
-opt = optax.adam(1e-5)
+opt = optax.adam(1e-7)
 losses2 = flowEns.train(
     train_set, convolve_errs=True, epochs=50, optimizer=opt, seed=1, verbose=True
 )
 
-opt = optax.adam(1e-6)
+opt = optax.adam(1e-8)
 losses3 = flowEns.train(
     train_set, convolve_errs=True, epochs=50, optimizer=opt, seed=2, verbose=True
 )

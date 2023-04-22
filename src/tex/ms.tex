@@ -1,5 +1,5 @@
 % Define document class
-\documentclass[twocolumn,twocolappendix]{aastex631}
+\documentclass[twocolumn,twocolappendix,linenumbers]{aastex631}
 \usepackage{showyourwork}
 
 \usepackage{lipsum} 
@@ -74,7 +74,7 @@
 \begin{abstract}
     Normalizing flows are powerful tools for learning high-dimensional probability distributions from samples thereof, and have many applications in astronomy, including posterior estimation and forward modeling.
     We introduce PZFlow, a Python package for statistical modeling of tabular data using normalizing flows.
-    We use PZFlow to model photometric galaxy catalogs including redshifts, LSST photometry, size, and ellipticity, and generate a synthetic catalog.
+    We use PZFlow to model photometric galaxy catalogs including redshifts, photometry, size, and shape, and generate a synthetic catalog.
     In this catalog, each galaxy has a \emph{true} redshift posterior.
     We discuss the importance of these true posteriors for the comprehensive evaluation of redshift posteriors produced by photometric redshift (photo-z) estimators.
     We also demonstrate the use of an ensemble of normalizing flows for density estimation, applied to photo-z estimation.
@@ -108,21 +108,24 @@ Knowledge of the probability distributions underlying our data is also valuable 
 Simulating data sets with realistic statistical properties enables methodological development and the calibration of systematic uncertainties.
 Forward modeling also facilitates data augmentation (e.g. \citealt{lokken2022}) and the creation of large data challenges (e.g. \citealt{kessler2019, dc2, cosmodc2}), which are becoming more prevalent in the big data era of astronomy.
 
-Inferring the underlying probability distribution from a high-dimensional data set is a difficult problem, and many machine learning tools have been developed for this task.
-Two popular deep learning examples are Generative Adversarial Networks (GANs; \citealt{goodfellow2014}) and Variational Autoencoders (VAEs; \citealt{kingma2014}).
-Both methods excel at forward modeling complex data sets, but neither allow exact likelihood inference.
+Inferring the underlying probability distribution, or likelihood, from a high-dimensional data set is a difficult problem.
+Many machine learning tools have been developed for this task, including Generative Adversarial Networks (GANs; \citealt{goodfellow2014}) and Variational Autoencoders (VAEs; \citealt{kingma2014}).
+Both are neural networks that excel at forward modeling complex data sets, but neither allow exact likelihood calculation for the simulated data.
+This means that questions such as ``under my model, what is the posterior distribution for redshift given the simulated photometry'' have only approximate answers.
 
-Normalizing flows, on the other hand, are a deep learning tool that excel at forward modeling, while also allowing exact likelihood inference.
-They operate by learning an invertible transformation of the data distribution into a simpler, tractable latent distribution (such as a normal distribution, hence the name \emph{normalizing} flow).
-This allows sampling and likelihood inference to be performed within the context of the latent distribution, with the normalizing flow acting as a translator between the latent samples and likelihoods, and their corresponding values in the context of the data distribution.
+Normalizing flows, on the other hand, are a deep learning tool that excel at forward modeling, while also allowing exact, analytic likelihood calculation.
+In other words, they allow you to analytically calculate likelihoods and posteriors with respect to the distribution from which simulated data is drawn.
+Normalizing flows operate by learning an invertible transformation of the data distribution into a simpler, tractable distribution, known as the latent distribution.
+A common choice for latent distribution is a normal distribution, hence the name \emph{normalizing} flow.
+This allows sampling and likelihood calculation to be performed within the context of the simple latent distribution, with the normalizing flow acting as a translator between the latent samples and likelihoods, and their corresponding values in the context of the complicated data distribution.
 
 Normalizing flows have gained popularity as tools for efficient and flexible sampling for parameter inference (e.g., \citealt{dai2022,dacunha2022,hassan2022}).
-In this paper, we focus on photo-z's and using normalizing flows to generate synthetic catalogs.
-Since normalizing flows provide exact likelihood inference, the properties of objects in these catalogs have \emph{true} posteriors.
-When calculating these posteriors, you can convolve error distributions, and marginalize over chosen properties.
-Catalogs with \emph{true} posteriors are useful for the testing and validation of analysis pipelines that estimate posteriors, such as the photo-z estimators used in much of astrophysics and cosmology.
+In this paper, we focus on photo-z's and forward modeling photometric galaxy catalogs.
+Since normalizing flows allow exact, analytic probability calculation, the properties of objects in these catalogs have \emph{true} posteriors.
+This means that questions such as ``under my model, what is the posterior distribution for redshift given the simulated photometry'' have exact answers.
+Catalogs with true posteriors are useful for the testing and validation of analysis pipelines that estimate posteriors, such as the photo-z estimators used in much of astrophysics and cosmology.
 Previous evaluations of these estimators have focused on comparing point estimates to true values (e.g., \citealt{hildebrandt2010,sanchez2014,graham2018}), or evaluating ensembles of posteriors \citePZp.
-Normalizing flow catalogs with \emph{true} posteriors open up a new, more comprehensive avenue for evaluation of these estimators by enabling posterior-to-posterior comparison.
+Normalizing flow catalogs with true posteriors open up a new, more comprehensive avenue for evaluation of these estimators by enabling direct posterior-to-posterior comparison.
 
 To facilitate the statistical modeling of galaxy catalogs and other astronomical data sets, we have developed PZFlow, a normalizing flow package for Python.
 With relatively little tuning required by the user, PZFlow can provide a generative model for any tabular data, including continuous and discrete variables, and variables with Euclidean or periodic topology.
@@ -149,7 +152,7 @@ Using the change of variables formula, we can evaluate the probability density o
 where $\nabla f(x)$ is the Jacobian of $f$ evaluated at $x$.
 In words, computing the density $\px(x)$ is accomplished by mapping $x$ to the latent distribution, calculating its density there, and multiplying by the associated Jacobian determinant, which accounts for how the function $f$ distorts volume elements of the space.
 
-If we further assume that $f$ is invertible, we can sample from the data distribution by appling $f^{-1}$ to samples from the latent distribution:
+If we further assume that $f$ is invertible, we can sample from the data distribution by applying $f^{-1}$ to samples from the latent distribution\footnote{Here, $~$ means ``is drawn from.''}:
 \begin{align}
     x = f^{-1}(u) \quad \text{where} \quad u \sim \pu.
 \end{align}
@@ -168,6 +171,8 @@ finally Section \ref{sec:discrete} explains how to model data with discrete vari
 \subsection{Designing a bijection}
 \label{sec:bijections}
 
+A bijection is an invertible map between two sets.
+In a normalizing flow, the bijection maps the data distribution onto the latent distribution for likelihood calculation, and the inverse of the bijection maps samples from the latent distribution back to the data distribution.
 The bijection of a normalizing flow must be powerful enough to model complex relationships in data, while remaining invertible and simultaneously possessing an efficiently computable Jacobian determinant.
 This latter constraint is the primary difficulty in designing a normalizing flow.
 The most popular strategy for achieving these requirements is to exploit the fact that a composition of bijections is also bijective.
@@ -179,7 +184,7 @@ The overall Jacobian determinant can be efficiently calculated using the chain r
 
 There is an extensive literature on constructing these sub-bijections (see \citealt{kobyzev2020} for a review).
 Some bijections are specialized to be particularly efficient at either density estimation or sampling, but for many science cases, we wish to do both.
-For this reason, we will focus on Rational-Quadratic Rolling Spline Couplings (RQ-RSCs), which achieve state-of-the-art performance, while being efficient with both tasks \citep{durkan2019}.
+For this reason, we will focus on Rational-Quadratic Rolling Spline Couplings (RQ-RSCs), bijections which achieve state-of-the-art performance, while being efficient with both tasks \citep{durkan2019}.
 
 \subsubsection{Rational-Quadratic Rolling Spline Couplings}
 \label{sec:rq-rsc}
@@ -193,17 +198,14 @@ For this reason, we will focus on Rational-Quadratic Rolling Spline Couplings (R
         \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=blue!20, right = 1.5cm of 2] (3) {$y^{}_{1:d}$};
         \draw[->] (1) -- (2);
         \draw[->] (2) -- (3);
-        
         % red boxes
         \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=red!20, below = 0 of 1] (4) {$x^{}_{d+1:D}$};
         \node [draw, circle, minimum size=8mm, fill=gray!20, right = 2cm of 4] (5) {$g$};
         \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=red!20, below = 0 of 3] (6) {$y^{}_{d+1:D}$};
         \draw[->] (4) -- (5);
         \draw[->] (5) -- (6);
-
         % coupling function
         \draw[->] (1) -- (5) node [midway, draw, circle, fill=white, minimum size=8mm, fill=gray!20] (7) {$m$};
-        
     \end{tikzpicture}
     \caption{
         Diagram of a coupling layer.
@@ -213,7 +215,7 @@ For this reason, we will focus on Rational-Quadratic Rolling Spline Couplings (R
     \label{fig:coupling}
 \end{figure}
 
-RQ-RSCs are based on coupling layers \citep{dinh2015, dinh2017}.
+RQ-RSCs are bijections that are composed of coupling layers \citep{dinh2015, dinh2017}.
 A coupling layer partitions the data, $x \in \R^D$, into two sets, $x_{1:d}$ and $x_{d+1:D}$.
 The first set is then used to transform the second set:
 \begin{align}
@@ -233,7 +235,8 @@ The advantage of this structure is that the Jacobian is triangular,
          & \frac{\partial y^{}_{d+1:D}}{\partial x^{}_{d+1:D}}
     \end{pmatrix},
 \end{align}
-and in particular, the Jacobian determinant is
+where $I_d$ is the $d \times d$ identity matrix.
+In particular, the Jacobian determinant is
 \begin{align}
     \det \frac{\partial y}{\partial x} = \det \frac{\partial y^{}_{d+1:D}}{\partial x^{}_{d+1:D}}.
 \end{align}
@@ -244,34 +247,34 @@ Furthermore, the inverse can be calculated as
     x^{}_{d+1:D} &= g^{-1}(y^{}_{d+1:D}; m(x^{}_{1:d})),
     \end{split}
 \end{align}
-Notice that neither inverting a coupling layer nor calculating the Jacobian determinant requires inverting or taking derivatives of the coupling function $m$, which can thus be arbitrarily complex.
+Notice that neither inverting a coupling layer $g$, nor calculating the Jacobian determinant, requires inverting or taking derivatives of the coupling function $m$, which can thus be arbitrarily complex.
 
 The obvious limitation of a coupling layer is that only a subset of the data dimensions are transformed.
 This is overcome by stacking multiple coupling layers in succession, and switching which variables belong to which partition.
 In practice, this is achieved by interspersing coupling layers with bijections that shuffle the dimensions of $x$.
 These shuffling bijections are trivially inverted and have a Jacobian determinant of one.
 
-There are a variety of different coupling laws one can use.
-One particularly expressive choice is a Rational-Quadratic Neural Spline Coupling (RQ-NSC; \citealt{durkan2019}).
-As the name suggests, the \emph{coupling law} for RQ-NSCs is a set of rational-quadratic splines and the \emph{coupling function} is a neural network.
-RQ-NSCs define a spline $g_i: [-B, B] \subset \R \to [-B, B]$ for each dimension $i$ of $x_{d+1:D}$, where $g_i$ is a piecewise combination of $K$ segments, and each segment is a rational-quadratic function.
-The positions and derivatives of the knots that parameterize the splines are calculated from $x_{1:d}$ by a neural network.
+In a general coupling layer $g$, there are a variety of coupling laws $m$ one can use.
+RQ-RSC's use Rational-Quadratic Neural Spline Coupling \citep{durkan2019}.
+As the name  suggests, the coupling law $g$ is a set of rational-quadratic splines.
+In particular, $g_i: [-B, B] \to [-B, B]$ for each dimension $i$ of $x_{d+1:D}$, where $g_i$ is a piecewise combination of $K$ segments, and each segment is a rational-quadratic function.
+The positions and derivatives of the knots that parameterize the splines are calculated using the coupling function $m$, which is a dense neural network applied to $x_{1:d}$.
 
-RQ-NSCs are state-of-the-art for efficient sampling and density estimation \citep{kobyzev2020}, and are flexible enough to model complex distributions with multiple discontinuities and hundreds of modes.
+The result is a bijection that achieves state-of-the-art performance and efficiency for forward modeling and density estimation \citep{kobyzev2020}, and are flexible enough to model complex distributions with multiple discontinuities and hundreds of modes.
 In addition, they are easily adaptable for flows with periodic topology (Section \ref{sec:periodic}).
 For more details, see \citet{durkan2019}.
 
-In this work, we introduce a simple extension of RQ-NSCs, which we name Rational-Quadratic Rolling Spline Couplings (RQ-RSCs).
-An RQ-RSC models $D$ dimensional data by stacking $D$ RQ-NSC layers (with $d=D-1$), each followed by a Rolling layer.
-A Rolling layer shifts the dimensions of $x$ by one place:
+In this work, we stack Rational-Quadratic Neural Spline Couplings, with Rolling Layers between each -- a configuration we name Rational-Quadratic Rolling Spline Couplings (RQ-RSCs).
+Rolling Layers shift the dimensions of $x$ by one place:
 \begin{align}
     \mathrm{Roll}: [x_1, \dots , x_{D-1}, x_D] \to [x_D, x_1, \dots , x_{D-1}].
 \end{align}
-In other words, RQ-RSCs individually transform each of the $D$ dimensions of $x$ as a function of the other $D-1$ dimensions.
+By constructing a stack with $D$ coupling layers, RQ-RSCs individually transform each of the $D$ dimensions of $x$ as a function of the other $D-1$ dimensions.
 In the limit of high spline resolution (i.e. $K \to \infty$), RQ-RSCs can model any differentiable, monotonic function on $[-B, B]^D$ and can thus model arbitrarily complex distributions in this region.
-In practice, we find very good performance for diverse data sets with $K=16$.
+In practice, we find very good performance for diverse data sets with $K \approx 16$.
 
 Note you can specify a different value of $K$ for each of the $D$ spline layers in order to individually control the resolution of each dimension.
+Lowering $K$ typically results in a smoother distribution, while increasing $K$ increases the complexity the normalizing flow can capture, while also increasing computational and memory cost.
 
 \subsubsection{Data processing bijections}
 \label{sec:data-processing}
@@ -336,21 +339,17 @@ This may even be desired if different dimensions of the data have different stru
         \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=blue!20, right = 1.5cm of 2] (3) {$y^{}_{1:d}$};
         \draw[->] (1) -- (2);
         \draw[->] (2) -- (3);
-        
         % red boxes
         \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=red!20, below = 0 of 1] (4) {$x^{}_{d+1:D}$};
         \node [draw, circle, minimum size=8mm, fill=gray!20, right = 2cm of 4] (5) {$g$};
         \node [draw, rectangle, minimum height=2cm, minimum width=1.28cm, fill=red!20, below = 0 of 3] (6) {$y^{}_{d+1:D}$};
         \draw[->] (4) -- (5);
         \draw[->] (5) -- (6);
-
         % coupling function
         \draw[->] (1) -- (5) node [midway, draw, circle, fill=white, minimum size=8mm, fill=gray!20] (7) {$m$};
-
         % conditional variables
         \node [draw, rectangle, minimum height=1.28cm, minimum width=1.28cm, fill=green!20, above = 0.25 of 1] (8) {$z^{}_{1:L}$};
         \draw[-] (8.south east) -- (7.north west);
-        
     \end{tikzpicture}
     \caption{
         Diagram of a \emph{conditional} coupling layer.
@@ -379,7 +378,7 @@ While progress has been made on building flows for general topologies (e.g. \cit
 We will see that by carefully choosing the latent space, we can construct flows with periodic topology with minimal additional effort \citep{rezende2020}.
 
 Positions on the sphere are specified by two angles\footnote{
-We use the physicists' convention where $\theta$ and $\phi$ are the zenith and azimuthal angles, respectively.
+We use the convention where $\theta$ and $\phi$ are the zenith and azimuthal angles, respectively.
 },
 $\theta$ and $\phi$, the latter of which is periodic.
 By mapping $\theta$ to $\cos\theta$, we map the sphere to a cylinder\footnote{
@@ -391,11 +390,11 @@ However, the $S^1$ piece, $\phi$, has a periodic topology and must be handled mo
 
 First, we will address transformations of $\cos\theta$.
 The only constraint we must impose is that samples of $\cos\theta$ must lie in the range $[-1, 1]$.
-Fortunately, RQ-NSCs are bounded, mapping a range in $u$ to the same range in $x$.
-Thus, if we pick a latent distribution with compact support in $[-1, 1]$, samples of $\cos\theta$ are guaranteed to lie in the same range, as long as we set the range of the RQ-NSC $B$ = 1.
+Fortunately, RQ-RSCs are bounded, mapping a range in $u$ to the same range in $x$.
+Thus, if we pick a latent distribution with compact support in $[-1, 1]$, samples of $\cos\theta$ are guaranteed to lie in the same range, as long as we set the range of the RQ-RSC $B$ = 1.
 
 Next we will address transformations of $\phi$.
-For $f$ to be a valid diffeomorphism on the circle, $S^1$, it is sufficient that $f$ obey the following constraints:
+For $f$ to be a differentiable bijection on the circle, $S^1$, it is sufficient that $f$ obey the following constraints:
 \begin{align}
     f(0) &= 0 \\
     f(2\pi) &= 2\pi \\
@@ -403,7 +402,7 @@ For $f$ to be a valid diffeomorphism on the circle, $S^1$, it is sufficient that
     \nabla f(\phi) &> 0.
 \end{align}
 The first two constraints ensure continuity of $f$ by designating $\phi=0$ as a fixed point, and the third constraint ensures continuity of $\nabla f$ at that fixed point.
-While the designation of $\phi=0$ as a fixed point is an unnecessary restriction on $f$, any diffeomorphism on the circle has at least one fixed point up to a phase change, and so this restriction does not actually restrict the expressiveness of $f$.
+While the designation of $\phi=0$ as a fixed point is an unnecessary restriction on $f$, any differentiable bijection on the circle has at least one fixed point up to a phase change, and so this restriction does not actually restrict the expressiveness of $f$.
 The fourth restriction ensures monotonicity, which guarantees invertibility.
 
 If we make the phase change $\phi \to \phi - \pi$ so that our angles $\phi \in [-\pi, \pi]$, a RQ-NSC with $B=\pi$ automatically fulfills all four constraints.
@@ -473,7 +472,7 @@ In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add ad
     \begin{centering}
         \includegraphics{figures/main_galaxy_corner.pdf}
         \caption{
-            Distribution of the CosmoDC2 test set compared to the distribution learned by PZFlow.
+            Distribution of true redshifts and noiseless photometry from the CosmoDC2 test set, compared to a sample drawn from the distribution learned by PZFlow.
             The close overlap of every pair-wise distribution demonstrates that PZFlow has learned the distribution in CosmoDC2 with high fidelity.
         }
         \label{fig:main-corner}
@@ -485,7 +484,7 @@ In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add ad
     \begin{centering}
         \includegraphics{figures/smooth_color_distribution.pdf}
         \caption{
-            Comparing the $r-i$ vs redshift distribution for galaxy samples from CosmoDC2 (left) and from the normalizing flow (right).
+            Comparing the noiseless $r-i$ vs redshift distribution for galaxy samples from CosmoDC2 (left) and from the normalizing flow (right).
             The high-redshift galaxies in CosmoDC2 lie along discrete tracks in color space due to the discrete number of galaxy SED templates used in the simulation.
             PZFlow smooths over these discrete tracks, resulting in a color distribution that is smooth to high redshifts.
         }
@@ -494,7 +493,7 @@ In Section \ref{sec:fwd-model-conditional} we build a conditional flow to add ad
 \end{figure*}
 
 To create a generative model of galaxy redshifts and photometry, we use the true redshifts and $ugrizy$ magnitudes from the CosmoDC2 simulation \citep{dc2, cosmodc2} of the LSST Dark Energy Science Collaboration (DESC).
-We selected all galaxies from CosmoDC2 with at most one band beyond the LSST 10-year 5-sigma point source depths.
+We selected all galaxies from CosmoDC2 with at most one band with a signal-to-noise ratio (SNR) less than 10, using the forecasted photometric errors from LSST year 10.
 Of these, we randomly selected $10^6$ galaxies and split them intro training and test sets consisting of 80\% and 20\% of the galaxies, respectively.
 
 For the latent distribution we use a 7 dimensional Uniform distribution over the range $[-5, 5]$\footnote{The choice of 5 was arbitrary. Any other positive value would work just as well.}.
@@ -567,7 +566,7 @@ This is the subject of the next section.
     \end{centering}
 \end{figure*}
 
-Since we have direct access to the probability distribution from which the photometry and redshifts are drawn, we can calculate the true redshift posterior for each galaxy: $p(z|m)$ where $m$ is the vector of galaxy magnitudes.
+Since we have direct access to the probability distribution from which the photometry and redshifts are drawn, we can analytically calculate the true redshift posterior for each galaxy: $p(z|m)$ where $m$ is the vector of galaxy magnitudes.
 We note that this is not an estimate, like what would be returned by a photo-z estimator, but rather the truth, obtained from the model that generated the photometry and redshifts in the first place.
 
 In addition to calculating the true posterior, $p(z|m)$, we can calculate a true posterior that is consistent with the photometric errors:
@@ -662,7 +661,7 @@ In this section, we use PZFlow as a photo-z estimator to demonstrate using norma
 \subsection{Training an Ensemble for photo-z estimation}
 
 When forward modeling in Section \ref{sec:galaxy-catalog}, we wanted a realistic model that captured the relevant correlations between galaxy photometry, redshift, shape, and size.
-However, when estimating redshifts, we do not simply want a realistic model, but rather a model that matches our galaxy sample as closely as possible.
+However, when estimating redshifts, we do not simply want a realistic model, but rather a model that matches our specific galaxy sample as closely as possible.
 
 When training deep learning models, the huge parameter space contains many different solutions, corresponding to different local minima in the parameter space.
 In the forward modeling application, we were content with finding a good local minimum, but in this application, we want to marginalize over the different potential models.
@@ -688,20 +687,6 @@ For more details on training the ensemble, see Appendix \ref{app:training-detail
 
 
 \subsection{Estimating posteriors}
-
-\begin{figure}[t]
-    \script{photo-z/plot_marginalized_posterior.py}
-    \begin{centering}
-        \includegraphics{figures/posterior_marginalized.pdf}
-        \caption{
-            Redshift posteriors for an example galaxy.
-            The vertical red line indicates the true redshift.
-            The black posterior is estimated using the information from all 6 LSST bands (and includes convolution of the photometric errors).
-            The orange posterior has had the $u$ band marginalized, which opens up a second high-redshift mode.
-        }
-        \label{fig:posterior_marginalized}
-    \end{centering}
-\end{figure}
 
 For each flow in the ensemble, we estimate $p(z, m)$ by marginalizing over the photometric errors:
 \begin{align}
