@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import optax
-import pandas as pd
+from load_training_data import load_data, split_data
 from pzflow import Flow
 from pzflow.bijectors import Chain, RollingSplineCoupling, ShiftBounds
 from showyourwork.paths import user as Paths
@@ -11,9 +11,11 @@ from showyourwork.paths import user as Paths
 # instantiate the paths
 paths = Paths()
 
-# load the training data
-data = pd.read_pickle(paths.data / "cosmoDC2_subset.pkl")
-train_set = data.loc[: int(0.8 * len(data))]
+# load data with noisy photometry
+data = load_data(sizes=True)
+
+# split training and validation sets
+train_set, val_set = split_data(data)
 
 # set up the bijector
 # the first bijector is shift bounds
@@ -45,19 +47,48 @@ flow = Flow(
 # train for three rounds of 150 epochs
 # after each round, decrease the learning rate by a factor of 10
 opt = optax.adam(1e-5)
-losses = flow.train(train_set, epochs=150, optimizer=opt, seed=0, verbose=True)
+losses1 = flow.train(
+    train_set,
+    val_set,
+    epochs=150,
+    optimizer=opt,
+    seed=0,
+    verbose=True,
+)
+losses1 = np.array(losses1)
 
 opt = optax.adam(1e-6)
-losses += flow.train(train_set, epochs=150, optimizer=opt, seed=1, verbose=True)
+losses2 = flow.train(
+    train_set,
+    val_set,
+    epochs=150,
+    optimizer=opt,
+    seed=1,
+    verbose=True,
+)
+losses2 = np.array(losses2)
 
 opt = optax.adam(1e-7)
-losses += flow.train(train_set, epochs=150, optimizer=opt, seed=2, verbose=True)
+losses3 = flow.train(
+    train_set,
+    val_set,
+    epochs=150,
+    optimizer=opt,
+    seed=2,
+    verbose=True,
+)
+losses3 = np.array(losses3)
+
+# stack all the losses together
+losses = np.hstack((losses1, losses2, losses3))
 
 # save some info with the model
 flow.info = (
     "This is a conditional normalizing flow trained to model "
     "p(ellipticity, size | redshift, photometry) "
-    "where all quantities are their true values from CosmoDC2 (arXiv:1907.06530). "
+    "where ellipticity, size, and redshift are their true values "
+    "from CosmoDC2 (arXiv:1907.06530). The photometry has had LSST Y10 "
+    "photometric errors added using PhotErr."
 )
 
 # create the directory the outputs will be saved in

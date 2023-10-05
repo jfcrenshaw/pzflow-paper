@@ -1,6 +1,7 @@
 """Plot distribution of r-i vs redshift for CosmoDC2 and PZFlow."""
 import matplotlib.pyplot as plt
 import pandas as pd
+from load_training_data import load_data, split_data
 from pzflow import Flow
 from showyourwork.paths import user as Paths
 
@@ -13,11 +14,14 @@ data = pd.read_pickle(paths.data / "cosmoDC2_subset.pkl")
 # load the flow
 flow = Flow(file=paths.data / "main_galaxy_flow" / "flow.pzflow.pkl")
 
-# pull out a subset of cosmoDC2 for plotting
-data = data.iloc[:100_000]
+# load data with noisy photometry
+data = load_data()
+
+# split training and validation sets
+train_set, val_set = split_data(data)
 
 # draw a same-sized sample from the flow
-samples = flow.sample(data.shape[0], seed=0)
+samples = flow.sample(val_set.shape[0], seed=0)
 
 # create the figure
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 2.7), constrained_layout=True, dpi=120)
@@ -29,7 +33,7 @@ plot_settings = {
     "rasterized": True,
 }
 
-ax1.hist2d(data["redshift"], data["r"] - data["i"], **plot_settings)
+ax1.hist2d(val_set["redshift"], val_set["r"] - val_set["i"], **plot_settings)
 ax2.hist2d(samples["redshift"], samples["r"] - samples["i"], **plot_settings)
 
 # set global axis settings

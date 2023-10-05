@@ -3,17 +3,20 @@ from pathlib import Path
 
 import numpy as np
 import optax
-import pandas as pd
+from load_training_data import load_data, split_data
 from pzflow import Flow
 from pzflow.bijectors import Chain, ColorTransform, RollingSplineCoupling, ShiftBounds
+from pzflow.distributions import CentBeta13
 from showyourwork.paths import user as Paths
 
 # instantiate the paths
 paths = Paths()
 
-# load the training data
-data = pd.read_pickle(paths.data / "cosmoDC2_subset.pkl")
-train_set = data.loc[: int(0.8 * len(data)), ["redshift"] + list("ugrizy")]
+# load data with noisy photometry
+data = load_data() 
+
+# split training and validation sets
+train_set, val_set = split_data(data)
 
 # set up the bijector
 # the first bijector is the color transform
@@ -26,48 +29,68 @@ mag_idx = [train_set.columns.get_loc(band) for band in "ugrizy"]
 # we need to set the mins and maxes
 # I am setting strict limits on redshift, but am adding some padding to
 # the magnitudes and colors so that the flow can sample a little
-colors = -np.diff(train_set[list("ugrizy")].to_numpy())
-mins = np.concatenate(([0, train_set["i"].min() - 0.1], colors.min(axis=0) - 0.1))
-maxs = np.concatenate(([3, train_set["i"].max() + 0.1], colors.max(axis=0) - 0.1))
-
-# I will add 10% buffers to the mins and maxs in case that the train set
-# doesn't cover the full range of the test set
-ranges = maxs - mins
-buffer = ranges / 10 / 2
-buffer[0] = 0  # except no buffer for redshift!
-mins -= buffer
-maxs += buffer
+colors = -np.diff(data[list("ugrizy")].to_numpy())
+mins = np.concatenate(([0, data["i"].min() - 0.25], colors.min(axis=0) - 0.5))
+maxs = np.concatenate(([3, data["i"].max() + 0.25], colors.max(axis=0) + 0.5))
 
 # finally, the settings for the RQ-RSC
-nlayers = train_set.shape[1]  # layers = number of dimensions
-K = 16  # number of spline knots
+ndim = train_set.shape[1]  # layers = number of dimensions
+K = 8  # number of spline knots
 transformed_dim = 1  # only transform one dimension at a time
 
 # chain all the bijectors together
 bijector = Chain(
     ColorTransform(ref_idx, mag_idx),
     ShiftBounds(mins, maxs),
-    RollingSplineCoupling(nlayers, K=K, transformed_dim=transformed_dim),
+    RollingSplineCoupling(nlayers=ndim, K=K, transformed_dim=transformed_dim),
 )
 
 # build the flow
-flow = Flow(train_set.columns, bijector=bijector)
+flow = Flow(train_set.columns, bijector=bijector, latent=CentBeta13(ndim))
 
 # train for three rounds of 50 epochs
 # after each round, decrease the learning rate by a factor of 10
-opt = optax.adam(1e-5)
-losses = flow.train(data, epochs=50, optimizer=opt, seed=0, verbose=True)
-
 opt = optax.adam(1e-6)
-losses += flow.train(data, epochs=50, optimizer=opt, seed=1, verbose=True)
+losses1 = flow.train(
+    train_set,
+    val_set,
+    epochs=100,
+    optimizer=opt,
+    seed=0,
+    verbose=True,
+)
+losses1 = np.array(losses1)
 
 opt = optax.adam(1e-7)
-losses += flow.train(data, epochs=50, optimizer=opt, seed=2, verbose=True)
+losses2 = flow.train(
+    train_set,
+    val_set,
+    epochs=50,
+    optimizer=opt,
+    seed=1,
+    verbose=True,
+)
+losses2 = np.array(losses2)
+
+opt = optax.adam(1e-8)
+losses3 = flow.train(
+    train_set,
+    val_set,
+    epochs=50,
+    optimizer=opt,
+    seed=2,
+    verbose=True,
+)
+losses3 = np.array(losses3)
+
+# stack all the losses together
+losses = np.hstack((losses1, losses2, losses3))
 
 # save some info with the model
 flow.info = (
-    "This is a normalizing flow trained on true redshifts and photometry "
-    "for 1 million galaxies from CosmoDC2 (arXiv:1907.06530)."
+    "This is a normalizing flow trained on true redshifts and noisy photometry "
+    "for 1 million galaxies from CosmoDC2 (arXiv:1907.06530). LSST Y10 "
+    "photometric errors were added using PhotErr."
 )
 
 # create the directory the outputs will be saved in
@@ -78,4 +101,4 @@ Path.mkdir(output_dir, exist_ok=True)
 flow.save(output_dir / "flow.pzflow.pkl")
 
 # save the losses
-np.save(output_dir / "losses.npy", np.array(losses))
+np.save(output_dir / "losses.npy", losses)

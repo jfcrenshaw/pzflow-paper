@@ -16,8 +16,8 @@ dependencies:
   - flake8-print=5.0.0
   - flake8-simplify=0.19.2
   - isort=5.10.1
-  - jax=0.4.8
-  - jaxlib=0.4.7=*cuda*
+  - jax=0.4.16
+  - jaxlib=0.4.14
   - jupyterlab=3.4.2
   - matplotlib=3.5.2
   - mypy=0.950
@@ -29,5 +29,6 @@ dependencies:
   - python=3.9
   - pip:
       - flake8-eradicate==1.2.1
-      - pzflow==3.1.0
+      - photerr==1.1.0
+      - pzflow==3.1.1
       - showyourwork==0.4.2

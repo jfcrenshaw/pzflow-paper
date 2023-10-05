@@ -2,7 +2,7 @@
 import corner
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+from load_training_data import load_data, split_data
 from matplotlib.ticker import MaxNLocator
 from pzflow import Flow
 from showyourwork.paths import user as Paths
@@ -13,10 +13,12 @@ paths = Paths()
 # set the number of samples to plot
 n_samples = 10_000
 
-# load the test set
-data = pd.read_pickle(paths.data / "cosmoDC2_subset.pkl")
-test_set = data.loc[int(0.2 * len(data)) :, ["redshift"] + list("ugrizy")]
-test_set = test_set[:n_samples]
+# load data with noisy photometry
+data = load_data()
+
+# split training and validation sets
+train_set, val_set = split_data(data)
+val_set = val_set[:n_samples]
 
 # draw samples from the saved flow
 flow = Flow(file=paths.data / "main_galaxy_flow" / "flow.pzflow.pkl")
@@ -39,11 +41,11 @@ corner_settings = {
         (18, 27),
     ],
     "hist_bin_factor": 1,
-    "labels": test_set.columns,
+    "labels": val_set.columns,
 }
 
 # plot the test set in red
-corner.corner(test_set.to_numpy(), color="C3", **corner_settings)
+corner.corner(val_set.to_numpy(), color="C3", **corner_settings)
 
 # plot the PZFlow samples in blue
 corner.corner(
