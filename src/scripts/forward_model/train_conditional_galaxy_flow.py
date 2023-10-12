@@ -50,7 +50,7 @@ opt = optax.adam(1e-5)
 losses1 = flow.train(
     train_set,
     val_set,
-    epochs=150,
+    epochs=200,
     optimizer=opt,
     seed=0,
     verbose=True,
@@ -61,7 +61,7 @@ opt = optax.adam(1e-6)
 losses2 = flow.train(
     train_set,
     val_set,
-    epochs=150,
+    epochs=200,
     optimizer=opt,
     seed=1,
     verbose=True,
@@ -72,7 +72,7 @@ opt = optax.adam(1e-7)
 losses3 = flow.train(
     train_set,
     val_set,
-    epochs=150,
+    epochs=200,
     optimizer=opt,
     seed=2,
     verbose=True,
@@ -88,7 +88,7 @@ flow.info = (
     "p(ellipticity, size | redshift, photometry) "
     "where ellipticity, size, and redshift are their true values "
     "from CosmoDC2 (arXiv:1907.06530). The photometry has had LSST Y10 "
-    "photometric errors added using PhotErr."
+    "photometric errors added using PhotErr, with sigLim=5."
 )
 
 # create the directory the outputs will be saved in

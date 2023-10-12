@@ -13,7 +13,7 @@ from showyourwork.paths import user as Paths
 paths = Paths()
 
 # load data with noisy photometry
-data = load_data() 
+data = load_data()
 
 # split training and validation sets
 train_set, val_set = split_data(data)
@@ -50,7 +50,7 @@ flow = Flow(train_set.columns, bijector=bijector, latent=CentBeta13(ndim))
 
 # train for three rounds of 50 epochs
 # after each round, decrease the learning rate by a factor of 10
-opt = optax.adam(1e-6)
+opt = optax.adam(1e-5)
 losses1 = flow.train(
     train_set,
     val_set,
@@ -61,7 +61,7 @@ losses1 = flow.train(
 )
 losses1 = np.array(losses1)
 
-opt = optax.adam(1e-7)
+opt = optax.adam(1e-6)
 losses2 = flow.train(
     train_set,
     val_set,
@@ -72,7 +72,7 @@ losses2 = flow.train(
 )
 losses2 = np.array(losses2)
 
-opt = optax.adam(1e-8)
+opt = optax.adam(1e-7)
 losses3 = flow.train(
     train_set,
     val_set,
@@ -90,7 +90,7 @@ losses = np.hstack((losses1, losses2, losses3))
 flow.info = (
     "This is a normalizing flow trained on true redshifts and noisy photometry "
     "for 1 million galaxies from CosmoDC2 (arXiv:1907.06530). LSST Y10 "
-    "photometric errors were added using PhotErr."
+    "photometric errors were added using PhotErr, with sigLim=5."
 )
 
 # create the directory the outputs will be saved in

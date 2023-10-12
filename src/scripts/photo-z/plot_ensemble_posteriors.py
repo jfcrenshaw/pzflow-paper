@@ -1,5 +1,4 @@
 """Plot posterior ensembles for a few galaxies."""
-# %%
 import matplotlib.pyplot as plt
 import numpy as np
 from load_pzflow_catalog import load_pzflow_catalog
@@ -16,11 +15,11 @@ flowEns = FlowEnsemble(file=paths.data / "pz_ensemble" / "pz_ensemble.pzflow.pkl
 test_set = load_pzflow_catalog(subset="test")
 
 # select galaxies for plotting
-idx = [87, 42, 99]
+idx = [11, 0, 12]
 test_set = test_set.iloc[idx]
 
 # calculate posteriors
-grid = np.linspace(0, 3.5, 351)
+grid = np.linspace(0, 3.5, 100)
 pdf_ens = flowEns.posterior(
     test_set, "redshift", grid, returnEnsemble=True, err_samples=100, seed=0
 )
@@ -47,8 +46,6 @@ for i, ax in enumerate(axes):
     ax.set(yticks=[], xlabel="redshift", xlim=(grid.min(), grid.max()))
 
 # put a legend in the center
-axes[1].legend(loc="upper right")
+axes[0].legend(loc="upper right")
 
 fig.savefig(paths.figures / "ensemble_posteriors.pdf")
-
-# %%

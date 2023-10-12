@@ -36,5 +36,6 @@ ax.set(
     xlim=(0, 3),
     ylim=(0, 3),
 )
+ax.plot([0, 3], [0, 3], c="k", ls="--", lw=1)
 
 fig.savefig(paths.figures / "pz_point_estimates.pdf", dpi=600)

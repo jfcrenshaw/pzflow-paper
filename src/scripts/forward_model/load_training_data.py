@@ -11,13 +11,13 @@ paths = Paths()
 
 
 def load_data(
-        noisy: bool = True,
-        finite: bool = True,
-        errs: bool = False,
-        sizes: bool = False,
+    noisy: bool = True,
+    finite: bool = True,
+    errs: bool = False,
+    sizes: bool = False,
 ) -> pd.DataFrame:
     """Return the training data.
-  
+
     Parameters
     ----------
     noisy: bool, default=True
@@ -45,7 +45,6 @@ def load_data(
         # add LSST Y10 photometric errors
         err_model = LsstErrorModel(
             sigLim=5,
-            ndMode="sigLim",
             extendedType="auto",
             majorCol="size",
             minorCol="size_minor",
@@ -69,7 +68,7 @@ def load_data(
 
 def split_data(data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Split the data into training and validation sets.
-    
+
     Parameters
     ----------
     data: pd.DataFrame
