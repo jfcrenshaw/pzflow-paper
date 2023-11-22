@@ -16,7 +16,7 @@ fig, ax = plt.subplots(figsize=(3, 3), constrained_layout=True)
 for i, loss in enumerate(losses.values()):
     ax.plot(loss, alpha=0.5, label=f"Flow {i+1}")
 ax.legend()
-ax.set(xlabel="Epochs", ylabel="Loss")
+ax.set(xlabel="Epochs", ylabel="Loss", ylim=(-2.5, -1))
 
 # save the figure
 fig.savefig(paths.figures / "ensemble_losses.pdf")
