@@ -18,3 +18,5 @@ To build the article:
 
 1. install [showyourwork](https://github.com/showyourwork/showyourwork)
 2. run `showyourwork` from the base of the repo.
+
+Note the auto-build on Github isn't currently working due to issues with the remote cache that I have no plans to fix it. But you can still run-from-scratch locally.
