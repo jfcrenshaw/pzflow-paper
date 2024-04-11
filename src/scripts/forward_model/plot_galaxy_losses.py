@@ -13,12 +13,15 @@ conditional_losses = np.load(paths.data / "conditional_galaxy_flow" / "losses.np
 # plot the losses
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 3), constrained_layout=True)
 
-main_epochs = np.arange(len(main_losses))
-ax1.plot(main_epochs, main_losses)
+main_epochs = np.arange(main_losses.shape[1])
+ax1.plot(main_epochs, main_losses[0], label="Training")
+ax1.plot(main_epochs, main_losses[1], label="Validation", ls="--")
+ax1.legend()
 ax1.set(xlabel="Epochs", ylabel="Loss", title="Regular flow")
 
-conditional_epochs = np.arange(len(conditional_losses))
-ax2.plot(conditional_epochs[10:], conditional_losses[10:])
+conditional_epochs = np.arange(conditional_losses.shape[1])
+ax2.plot(conditional_epochs[10:], conditional_losses[0, 10:])
+ax2.plot(conditional_epochs[10:], conditional_losses[1, 10:], ls="--")
 ax2.set(xlabel="Epochs", title="Conditional flow")
 
 # save the figure

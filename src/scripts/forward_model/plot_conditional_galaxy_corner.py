@@ -2,7 +2,7 @@
 import corner
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+from load_training_data import load_data, split_data
 from matplotlib.ticker import MaxNLocator
 from pzflow import Flow
 from showyourwork.paths import user as Paths
@@ -13,15 +13,16 @@ paths = Paths()
 # set the number of samples to plot
 n_samples = 10_000
 
-# load the test set
-data = pd.read_pickle(paths.data / "cosmoDC2_subset.pkl")
-data = data.drop(["ra", "dec"], axis=1)
-test_set = data.loc[int(0.2 * len(data)) :]
-test_set = test_set[:n_samples]
+# load data with noisy photometry
+data = load_data(sizes=True)
+
+# split training and validation sets
+train_set, val_set = split_data(data)
+val_set = val_set[:n_samples]
 
 # draw samples from the saved flow
 flow = Flow(file=paths.data / "conditional_galaxy_flow" / "flow.pzflow.pkl")
-samples = flow.sample(1, conditions=test_set, seed=0)[test_set.columns]
+samples = flow.sample(1, conditions=val_set, seed=0)[val_set.columns]
 
 # create the corner plot
 fig = plt.figure(figsize=(7, 7))
@@ -42,12 +43,12 @@ corner_settings = {
         (0, 1.07),
     ],
     "hist_bin_factor": 1,
-    "labels": test_set.columns,
+    "labels": val_set.columns,
     "labelpad": 0.2,
 }
 
 # plot the test set in red
-corner.corner(test_set.to_numpy(), color="C3", **corner_settings)
+corner.corner(val_set.to_numpy(), color="C3", **corner_settings)
 
 # plot the PZFlow samples in blue
 corner.corner(
@@ -79,9 +80,13 @@ for ax in axes[-2:, 1:].flatten():
 
 # set ylim
 for ax in axes[-2, :-2]:
-    ax.set(ylim=(0, 1.03))
+    ax.set(ylim=(0, 1.05))
 for ax in axes[-1, :-1]:
-    ax.set(ylim=(0, 1.03))
+    ax.set(ylim=(0, 1.05))
+
+# set yticks
+axes[-2, 0].set(yticks=[0, 0.4, 0.8])
+axes[-1, 0].set(yticks=[0, 0.4, 0.8])
 
 # add a legend
 axes[-2, -1].plot([], c="C0", label="PZFlow")

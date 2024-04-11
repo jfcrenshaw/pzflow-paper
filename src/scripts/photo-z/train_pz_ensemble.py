@@ -114,7 +114,7 @@ flowEns = FlowEnsemble(
 
 opt = optax.adam(1e-4)
 losses1 = flowEns.train(
-    train_set, convolve_errs=True, epochs=50, optimizer=opt, seed=0, verbose=True
+    train_set, convolve_errs=True, epochs=100, optimizer=opt, seed=0, verbose=True
 )
 
 opt = optax.adam(1e-5)
